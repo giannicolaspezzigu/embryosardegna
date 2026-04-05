@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Embryosardegna - Follicular Dynamics Evaluation</title>
+<link rel="stylesheet" href="assets/styles/app.css">
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-name">Embryosardegna</div>
+      <div class="brand-sub">Follicular Dynamics Evaluation</div>
+    </div>
+    <div class="header-controls">
+      <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
+      <div class="date-badge" id="dateBadge"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="view-nav" aria-label="Viste applicazione">
+  <button class="view-tab active" id="showOperationalViewBtn" type="button">Operativa</button>
+  <button class="view-tab" id="showManagementViewBtn" type="button">Database</button>
+  <button class="view-tab" id="showAnalyticsViewBtn" type="button">Analisi</button>
+</nav>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="card sidebar-card">
+      <div class="card-header">
+        <div class="card-title">&#x1F40F; Animali</div>
+        <div class="mini-badge" id="animalCountBadge">0</div>
+      </div>
+      <div class="card-body sidebar-tools">
+        <input class="sidebar-input" id="animalSearchInput" type="text" placeholder="Cerca animale, allevamento, tag">
+        <button class="primary-btn" id="newAnimalBtn" type="button">+ Nuovo animale</button>
+      </div>
+      <div class="animal-list" id="animalList"></div>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <section class="view-panel active" id="operationalView">
+    <section class="workspace-grid">
+      <div class="card workspace-card panel-animal-overview">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Scheda Animale</div>
+            <div class="workspace-heading" id="selectedAnimalTitle">Nessun animale selezionato</div>
+          </div>
+          <div class="repo-pill" id="repoModeBadge">--</div>
+        </div>
+        <div class="card-body">
+          <div class="entity-meta" id="selectedAnimalMeta">Seleziona un animale dal pannello a sinistra.</div>
+          <div class="pill-row" id="selectedAnimalPills"></div>
+          <div class="entity-metrics" id="selectedAnimalMetrics"></div>
+        </div>
+      </div>
+
+      <div class="card workspace-card panel-visit-review">
+        <div class="card-header">
+          <div class="card-title">Ultime 3 Ecografie</div>
+        </div>
+        <div class="card-body">
+          <div class="visit-cards" id="recentVisitsList"></div>
+        </div>
+      </div>
+
+      <div class="card workspace-card panel-visit-review">
+        <div class="card-header">
+          <div class="card-title">Storico Completo</div>
+        </div>
+        <div class="card-body">
+          <div class="visit-history" id="visitHistoryList"></div>
+        </div>
+      </div>
+
+      <div class="card workspace-card panel-visit-detail">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Dettaglio Ecografia</div>
+            <div class="workspace-subheading" id="selectedVisitHeading">Nessuna ecografia selezionata</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="entity-meta" id="selectedVisitMeta">Seleziona una visita per visualizzare il dettaglio completo.</div>
+          <div class="visit-detail" id="selectedVisitDetail"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scan-section">
+      <div class="scan-section-header">
+        <div>
+          <div class="card-title">Nuova Ecografia / Editor</div>
+          <div class="workspace-subheading">Editor operativo collegato all'animale selezionato</div>
+        </div>
+        <div class="scan-section-actions">
+          <button class="clr-btn" id="newVisitFromScratchBtn" type="button">Nuova visita</button>
+          <button class="clr-btn" id="importSelectedVisitBtn" type="button">Importa visita selezionata</button>
+        </div>
+      </div>
+
+      <div class="card panel-visit-context">
+        <div class="card-header">
+          <div class="card-title">Contesto Visita</div>
+          <div class="mini-badge" id="editorModeBadge">V2</div>
+        </div>
+        <div class="card-body">
+          <div class="editor-context-grid">
+            <label class="form-field">
+              <span>Data e ora visita</span>
+              <input type="datetime-local" id="visitDatetimeInput">
+            </label>
+            <label class="form-field">
+              <span>Scopo visita</span>
+              <select id="visitPurposeInput">
+                <option value="follicular_monitoring">Monitoraggio follicolare</option>
+                <option value="recipient_selection">Selezione ricevente</option>
+                <option value="breeding_exam">Esame riproduttivo</option>
+                <option value="pregnancy_diagnosis">Diagnosi gravidanza</option>
+                <option value="follow_up">Follow-up</option>
+                <option value="male_repro_exam">Esame maschile</option>
+                <option value="research_scan">Ecografia di ricerca</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span>Programma</span>
+              <select id="programTypeInput">
+                <option value="unknown">Non definito</option>
+                <option value="et">Embryo transfer</option>
+                <option value="ai">IA</option>
+                <option value="tai">TAI</option>
+                <option value="moet">MOET</option>
+                <option value="synchronization">Sincronizzazione</option>
+                <option value="natural_mating">Monta naturale</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span>Nome protocollo</span>
+              <input type="text" id="protocolNameInput" placeholder="es: Recipient protocol A">
+            </label>
+            <label class="form-field">
+              <span>Operatore</span>
+              <input type="text" id="operatorNameInput" placeholder="es: Antonio Spezzigu">
+            </label>
+            <label class="form-field">
+              <span>Stato gravidanza</span>
+              <select id="pregnancyStatusInput">
+                <option value="unknown">Non definito</option>
+                <option value="suspected">Sospetta</option>
+                <option value="positive">Positiva</option>
+                <option value="negative">Negativa</option>
+                <option value="loss_suspected">Perdita sospetta</option>
+                <option value="loss_confirmed">Perdita confermata</option>
+              </select>
+            </label>
+          </div>
+          <div class="editor-actions">
+            <label class="checkbox-field">
+              <input type="checkbox" id="dopplerModeInput">
+              <span>Doppler eseguito</span>
+            </label>
+            <div class="editor-actions-right">
+              <button class="clr-btn" id="resetVisitEditorBtn" type="button">Reset editor</button>
+              <button class="primary-btn" id="saveVisitBtn" type="button">Salva visita</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-secondary-grid">
+        <div class="card panel-attachments">
+          <div class="card-header">
+            <div class="card-title">Allegati Visita</div>
+          </div>
+          <div class="card-body">
+            <div class="editor-advanced-grid">
+              <label class="form-field">
+                <span>File allegato</span>
+                <input type="file" id="attachmentFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv">
+              </label>
+              <label class="form-field">
+                <span>Etichetta allegato</span>
+                <input type="text" id="attachmentLabelInput" placeholder="es: Snapshot ovaio dx o nome file">
+              </label>
+            </div>
+            <div class="editor-actions compact">
+              <div></div>
+              <div class="editor-actions-right">
+                <button class="clr-btn" id="addAttachmentBtn" type="button">Aggiungi allegato</button>
+              </div>
+            </div>
+            <div class="draft-list" id="attachmentDraftList"></div>
+          </div>
+        </div>
+
+        <div class="card panel-protocol">
+          <div class="card-header">
+            <div class="card-title">Eventi Protocollo</div>
+          </div>
+          <div class="card-body">
+            <div class="editor-advanced-grid protocol-grid">
+              <label class="form-field">
+                <span>Data e ora evento</span>
+                <input type="datetime-local" id="protocolEventAtInput">
+              </label>
+              <label class="form-field">
+                <span>Tipo evento</span>
+                <select id="protocolEventTypeInput">
+                  <option value="hormone">Ormone</option>
+                  <option value="device_inserted">Dispositivo inserito</option>
+                  <option value="device_removed">Dispositivo rimosso</option>
+                  <option value="estrus_observed">Estro osservato</option>
+                  <option value="ai">IA</option>
+                  <option value="et">ET</option>
+                  <option value="natural_mating">Monta naturale</option>
+                  <option value="pregnancy_diagnosis">Diagnosi gravidanza</option>
+                  <option value="clinical_note">Nota clinica</option>
+                  <option value="other">Altro</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Nome evento</span>
+                <input type="text" id="protocolEventNameInput" placeholder="es: eCG, ET, CIDR removal">
+              </label>
+              <label class="form-field protocol-wide">
+                <span>Note evento</span>
+                <input type="text" id="protocolEventNotesInput" placeholder="es: transfer su corno ipsilaterale al CL">
+              </label>
+            </div>
+            <div class="editor-actions compact">
+              <div></div>
+              <div class="editor-actions-right">
+                <button class="clr-btn" id="addProtocolEventBtn" type="button">Aggiungi evento</button>
+              </div>
+            </div>
+            <div class="draft-list" id="protocolEventDraftList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel-pregnancy">
+        <div class="card-header">
+          <div class="card-title">Follow-up Gravidanza</div>
+        </div>
+        <div class="card-body">
+          <div class="toggle-row">
+            <label class="checkbox-field">
+              <input type="checkbox" id="pregnancyCheckEnabledInput">
+              <span>Salva anche un record di controllo gravidanza</span>
+            </label>
+          </div>
+          <div class="editor-context-grid pregnancy-grid">
+            <label class="form-field">
+              <span>Data e ora controllo</span>
+              <input type="datetime-local" id="pregnancyCheckAtInput">
+            </label>
+            <label class="form-field">
+              <span>Giorni da fecondazione/ET</span>
+              <input type="number" id="pregnancyDaysFromBreedingInput" min="0" step="1" placeholder="es: 18">
+            </label>
+            <label class="form-field">
+              <span>Numero embrioni/feti</span>
+              <input type="number" id="pregnancyEmbryoCountInput" min="0" step="1" placeholder="es: 2">
+            </label>
+            <label class="form-field">
+              <span>Heartbeat</span>
+              <select id="pregnancyHeartbeatInput">
+                <option value="">Non rilevato</option>
+                <option value="true">Presente</option>
+                <option value="false">Assente</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span>Vitalità fetale</span>
+              <input type="text" id="pregnancyViabilityInput" placeholder="es: normale">
+            </label>
+            <label class="form-field">
+              <span>Note follow-up</span>
+              <input type="text" id="pregnancyCheckNotesInput" placeholder="es: camera gestazionale ben evidente">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="card full panel-structure-tray">
+          <div class="card-header">
+            <div class="card-title">&#x1F4E6; Struttura da aggiungere - seleziona e tocca l'ovaio</div>
+          </div>
+          <div class="card-body">
+            <div class="tray-row" id="tray"></div>
+          </div>
+        </div>
+
+        <div class="full">
+          <div class="voice-row">
+            <button class="voice-btn" id="voiceBtn" type="button">
+              <span class="voice-icon" aria-hidden="true">&#x1F399;&#xFE0F;</span>
+              <span id="voiceBtnTxt">Comando Vocale</span>
+            </button>
+            <div class="transcript" id="transcript">
+              <i>Es: "3 follicoli 4mm ore 6 sinistro" - "corpo luteo 8mm destro" - "ovulazione sinistro"</i>
+            </div>
+            <button class="clr-btn" id="clearSelectionBtn" type="button">&#x2715; Deseleziona</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="ovary-title-l">&#x25C0; Ovaio Sinistro</div>
+            <div class="ftot-badge" id="ftot-L">-</div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas class="ov-canvas" id="canvasL" width="280" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="ovary-title-r">Ovaio Destro &#x25B6;</div>
+            <div class="ftot-badge" id="ftot-R">-</div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas class="ov-canvas" id="canvasR" width="280" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="card full panel-counts">
+          <div class="card-header">
+            <div class="card-title">&#x1F4CA; Conteggio Follicoli - Totale entrambi gli ovai</div>
+          </div>
+          <div class="card-body">
+            <div class="stats-grid">
+              <div class="stat-card st-total">
+                <div class="stat-lbl">TOTALE</div>
+                <div class="stat-num" id="sn-tot">0</div>
+                <div class="stat-sides">
+                  <span class="stat-side sl" id="ss-tot-l">Sin: 0</span>
+                  <span class="stat-side sr" id="ss-tot-r">Des: 0</span>
+                </div>
+              </div>
+              <div class="stat-card st-small">
+                <div class="stat-lbl">PICCOLI &lt;3mm</div>
+                <div class="stat-num" id="sn-sm">0</div>
+                <div class="stat-sides">
+                  <span class="stat-side sl" id="ss-sm-l">Sin: 0</span>
+                  <span class="stat-side sr" id="ss-sm-r">Des: 0</span>
+                </div>
+              </div>
+              <div class="stat-card st-med">
+                <div class="stat-lbl">MEDI 3-5mm</div>
+                <div class="stat-num" id="sn-med">0</div>
+                <div class="stat-sides">
+                  <span class="stat-side sl" id="ss-med-l">Sin: 0</span>
+                  <span class="stat-side sr" id="ss-med-r">Des: 0</span>
+                </div>
+              </div>
+              <div class="stat-card st-large">
+                <div class="stat-lbl">GRANDI &gt;5mm</div>
+                <div class="stat-num" id="sn-lg">0</div>
+                <div class="stat-sides">
+                  <span class="stat-side sl" id="ss-lg-l">Sin: 0</span>
+                  <span class="stat-side sr" id="ss-lg-r">Des: 0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card full panel-uterus">
+          <div class="card-header">
+            <div class="card-title">&#x1F52C; Utero - Tono / Vascolarizzazione / Liquido Luminale</div>
+          </div>
+          <div class="card-body">
+            <div class="uterus-params">
+              <div class="uparam">
+                <div class="uparam-lbl">T - Tono</div>
+                <div class="uparam-desc">1 ipotonico &middot; 2 normale &middot; 3 ipertonico</div>
+                <div class="uparam-btns" id="pT">
+                  <button class="uparam-btn" type="button" data-param="T" data-value="1">1</button>
+                  <button class="uparam-btn" type="button" data-param="T" data-value="2">2</button>
+                  <button class="uparam-btn" type="button" data-param="T" data-value="3">3</button>
+                </div>
+                <div class="uparam-val" id="bT">-</div>
+              </div>
+              <div class="uparam">
+                <div class="uparam-lbl">V - Vascolarizzazione</div>
+                <div class="uparam-desc">1 scarsa &middot; 2 moderata &middot; 3 abbondante</div>
+                <div class="uparam-btns" id="pV">
+                  <button class="uparam-btn" type="button" data-param="V" data-value="1">1</button>
+                  <button class="uparam-btn" type="button" data-param="V" data-value="2">2</button>
+                  <button class="uparam-btn" type="button" data-param="V" data-value="3">3</button>
+                </div>
+                <div class="uparam-val" id="bV">-</div>
+              </div>
+              <div class="uparam">
+                <div class="uparam-lbl">L - Liquido Luminale</div>
+                <div class="uparam-desc">1 assente &middot; 2 lieve &middot; 3 abbondante</div>
+                <div class="uparam-btns" id="pL">
+                  <button class="uparam-btn" type="button" data-param="L" data-value="1">1</button>
+                  <button class="uparam-btn" type="button" data-param="L" data-value="2">2</button>
+                  <button class="uparam-btn" type="button" data-param="L" data-value="3">3</button>
+                </div>
+                <div class="uparam-val" id="bL">-</div>
+              </div>
+            </div>
+            <div class="uterus-advanced-grid">
+              <label class="form-field">
+                <span>Edema utero</span>
+                <select id="uterusEdemaInput">
+                  <option value="">Non definito</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Texture utero</span>
+                <select id="uterusTextureInput">
+                  <option value="">Non definito</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </label>
+              <label class="form-field uterus-wide-field">
+                <span>Flags patologici uterini</span>
+                <input type="text" id="pathologyFlagsInput" placeholder="es: fluido anomalo, sospetta endometrite">
+              </label>
+              <label class="form-field">
+                <span>Note corno sinistro</span>
+                <input type="text" id="leftHornNotesInput" placeholder="es: corno più disteso">
+              </label>
+              <label class="form-field">
+                <span>Note corno destro</span>
+                <input type="text" id="rightHornNotesInput" placeholder="es: parete ispessita">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="full">
+          <textarea class="annotation" id="annoField" placeholder="&#x1F4DD; Annotazione libera (es: FOSCHIA, OVAIO GRANDE, NV, TUMBADA, RIVELA...)"></textarea>
+        </div>
+
+        <div class="card full panel-session-log">
+          <div class="card-header">
+            <div class="card-title">&#x1F4CB; Registro Sessione</div>
+            <button class="export-btn" id="exportBtn" type="button">&#x2B07; Esporta CSV</button>
+          </div>
+          <div class="log-body" id="logBody">
+            <div class="log-row"><span class="lt">-</span><span class="ls">-</span><span class="ld" style="color:var(--muted)">Inizia ad aggiungere strutture.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    </section>
+
+    <section class="view-panel" id="managementView">
+      <section class="workspace-grid management-grid">
+        <div class="card workspace-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Gestione Animale</div>
+              <div class="workspace-subheading" id="managementAnimalHeading">Seleziona un animale</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid management-form-grid">
+              <label class="form-field">
+                <span>Codice animale</span>
+                <input type="text" id="managementAnimalCodeInput" placeholder="Codice animale">
+              </label>
+              <label class="form-field">
+                <span>Specie</span>
+                <select id="managementAnimalSpeciesInput">
+                  <option value="ovine">Ovino</option>
+                  <option value="bovine">Bovino</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Razza</span>
+                <input type="text" id="managementAnimalBreedInput" placeholder="Razza">
+              </label>
+              <label class="form-field">
+                <span>Allevamento</span>
+                <input type="text" id="managementAnimalFarmInput" placeholder="Allevamento">
+              </label>
+              <label class="form-field">
+                <span>Ruolo</span>
+                <select id="managementAnimalRoleInput">
+                  <option value="recipient">Ricevente</option>
+                  <option value="donor">Donatrice</option>
+                  <option value="breeding_female">Riproduttrice</option>
+                  <option value="monitoring_only">Monitoraggio</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Parità</span>
+                <input type="number" id="managementAnimalParityInput" min="0" step="1" placeholder="Parità">
+              </label>
+              <label class="form-field management-wide-field">
+                <span>Note animale</span>
+                <input type="text" id="managementAnimalNotesInput" placeholder="Note cliniche o gestionali">
+              </label>
+            </div>
+            <div class="management-actions">
+              <button class="primary-btn" id="saveAnimalChangesBtn" type="button">Salva animale</button>
+              <button class="clr-btn danger-btn" id="deleteAnimalBtn" type="button">Elimina animale</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card workspace-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Visite Salvate</div>
+              <div class="workspace-subheading" id="managementVisitHeading">Modifica, elimina o apri nell'editor</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="management-visit-list" id="managementVisitList"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="view-panel" id="analyticsView">
+      <section class="workspace-grid analytics-grid">
+        <div class="card workspace-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Panoramica</div>
+              <div class="workspace-subheading">Indicatori aggregati demo</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="entity-metrics" id="analyticsSummaryMetrics"></div>
+          </div>
+        </div>
+
+        <div class="card workspace-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Trend Animale</div>
+              <div class="workspace-subheading" id="analyticsAnimalHeading">Andamento visite nel tempo</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="analytics-chart" id="analyticsAnimalTrend"></div>
+          </div>
+        </div>
+
+        <div class="card workspace-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Distribuzione Gregge</div>
+              <div class="workspace-subheading">Ultimo stato noto per animale</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="analytics-chart" id="analyticsHerdBreakdown"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="modal-bg" id="animalModal">
+  <div class="modal-box modal-box-wide">
+    <h3>Nuovo animale</h3>
+    <p>Crea un animale nel repository locale di lavoro per costruire la demo clinica.</p>
+    <div class="form-grid">
+      <label class="form-field">
+        <span>Codice animale</span>
+        <input type="text" id="animalCodeInput" placeholder="es: OV-301">
+      </label>
+      <label class="form-field">
+        <span>Specie</span>
+        <select id="animalSpeciesInput">
+          <option value="ovine">Ovino</option>
+          <option value="bovine">Bovino</option>
+        </select>
+      </label>
+      <label class="form-field">
+        <span>Razza</span>
+        <input type="text" id="animalBreedInput" placeholder="es: Sarda">
+      </label>
+      <label class="form-field">
+        <span>Allevamento</span>
+        <input type="text" id="animalFarmInput" placeholder="es: Azienda Rossi">
+      </label>
+      <label class="form-field">
+        <span>Ruolo</span>
+        <select id="animalRoleInput">
+          <option value="recipient">Ricevente</option>
+          <option value="donor">Donatrice</option>
+          <option value="breeding_female">Riproduttrice</option>
+          <option value="monitoring_only">Monitoraggio</option>
+        </select>
+      </label>
+      <label class="form-field">
+        <span>Parit&#xE0;</span>
+        <input type="number" id="animalParityInput" min="0" step="1" placeholder="es: 2">
+      </label>
+    </div>
+    <div class="modal-btns">
+      <button class="mb-ok" id="saveAnimalBtn" type="button">Crea animale</button>
+      <button class="mb-skip" id="cancelAnimalBtn" type="button">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="clModal">
+  <div class="modal-box">
+    <h3>&#x1F7E1; Corpo Luteo</h3>
+    <p>Superficie del CL in mm&sup2; (opzionale - lascia vuoto per omettere)</p>
+    <input type="number" id="clSurfInput" placeholder="es: 120 mm&sup2;" min="0" step="1">
+    <div class="modal-btns">
+      <button class="mb-ok" id="confirmClBtn" type="button">&#x2713; Conferma</button>
+      <button class="mb-skip" id="skipClBtn" type="button">Salta</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="attachmentModal">
+  <div class="modal-box modal-box-attachment">
+    <div class="attachment-modal-head">
+      <div>
+        <h3 id="attachmentModalTitle">Allegato visita</h3>
+        <p id="attachmentModalMeta">Anteprima allegato</p>
+      </div>
+      <button class="mb-skip" id="closeAttachmentModalBtn" type="button">Chiudi</button>
+    </div>
+    <div class="attachment-modal-body" id="attachmentModalBody"></div>
+    <div class="modal-btns">
+      <a class="mb-ok attachment-download-btn" id="downloadAttachmentBtn" href="#" download>Scarica</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="assets/scripts/state.js"></script>
+<script src="assets/scripts/utils.js"></script>
+<script src="assets/scripts/domain/enums.js"></script>
+<script src="assets/scripts/domain/models.js"></script>
+<script src="assets/scripts/domain/normalizers.js"></script>
+<script src="assets/scripts/repositories/runtimeConfig.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore-compat.js"></script>
+<script src="assets/scripts/repositories/contract.js"></script>
+<script src="assets/scripts/repositories/mockRepository.js"></script>
+<script src="assets/scripts/repositories/firestoreRepository.js"></script>
+<script src="assets/scripts/repositories/bootstrap.js"></script>
+<script src="assets/scripts/dom.js"></script>
+<script src="assets/scripts/session.js"></script>
+<script src="assets/scripts/ui.js"></script>
+<script src="assets/scripts/canvas.js"></script>
+<script src="assets/scripts/voice.js"></script>
+<script src="assets/scripts/export.js"></script>
+<script src="assets/scripts/navigation.js"></script>
+<script src="assets/scripts/attachmentViewer.js"></script>
+<script src="assets/scripts/workspace.js"></script>
+<script src="assets/scripts/managementView.js"></script>
+<script src="assets/scripts/analyticsView.js"></script>
+<script src="assets/scripts/visitEditor.js"></script>
+<script src="assets/scripts/app.js"></script>
+</body>
+</html>
