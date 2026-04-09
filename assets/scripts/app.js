@@ -4,6 +4,7 @@
   async function init() {
     app.repositories.bootstrap.init();
     app.dom.init();
+    app.theme.init();
     app.ui.init();
     app.canvas.init();
     app.voice.init();

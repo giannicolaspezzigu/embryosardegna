@@ -11,6 +11,8 @@
       this.refs = {
         sheepId: document.getElementById("sheepId"),
         dateBadge: document.getElementById("dateBadge"),
+        themeDarkBtn: document.getElementById("themeDarkBtn"),
+        themeLightBtn: document.getElementById("themeLightBtn"),
         repoModeBadge: document.getElementById("repoModeBadge"),
         editorModeBadge: document.getElementById("editorModeBadge"),
         showOperationalViewBtn: document.getElementById("showOperationalViewBtn"),

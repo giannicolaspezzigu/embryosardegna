@@ -3,23 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Embryosardegna - Follicular Dynamics Evaluation</title>
+<title>Embryo Sardegna - Follicular Dynamic Evaluation</title>
 <link rel="stylesheet" href="assets/styles/app.css">
 </head>
-<body>
+<body data-theme="dark">
 
 <header>
   <div class="header-top">
     <div class="brand">
       <img class="brand-logo" src="assets/images/embryosardegna-logo.jpg" alt="Logo ufficiale Embryo Sardegna">
       <div class="brand-copy">
-        <div class="brand-name">Embryosardegna</div>
-        <div class="brand-sub">Follicular Dynamics Evaluation</div>
+        <div class="brand-name">Embryo Sardegna</div>
+        <div class="brand-sub">Tecnologia · Riproduzione · Fertilità</div>
       </div>
     </div>
+    <div class="app-hero">
+      <div class="app-kicker">Advanced Reproductive Imaging Platform</div>
+      <div class="app-title">Follicular Dynamic Evaluation</div>
+      <div class="app-subtitle">Conference-ready veterinary console for ovarian dynamics</div>
+    </div>
     <div class="header-controls">
-      <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
-      <div class="date-badge" id="dateBadge"></div>
+      <div class="theme-toggle" aria-label="Tema applicazione">
+        <button class="theme-btn active" id="themeDarkBtn" data-theme-choice="dark" type="button">Dark Lab</button>
+        <button class="theme-btn" id="themeLightBtn" data-theme-choice="light" type="button">Bright Lab</button>
+      </div>
+      <div class="header-status">
+        <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
+        <div class="date-badge" id="dateBadge"></div>
+      </div>
     </div>
   </div>
 </header>
@@ -95,7 +106,7 @@
       </div>
     </section>
 
-    <section class="scan-section">
+    <section class="scan-section editor-focus-section">
       <div class="scan-section-header">
         <div>
           <div class="card-title">Nuova Ecografia / Editor</div>
@@ -162,117 +173,42 @@
               </select>
             </label>
           </div>
-          <div class="editor-actions">
+          <div class="editor-context-toggle-row">
             <label class="checkbox-field">
               <input type="checkbox" id="dopplerModeInput">
               <span>Doppler eseguito</span>
             </label>
-            <div class="editor-actions-right">
-              <button class="clr-btn" id="resetVisitEditorBtn" type="button">Reset editor</button>
-              <button class="primary-btn" id="saveVisitBtn" type="button">Salva visita</button>
-            </div>
           </div>
         </div>
       </div>
 
-      <div class="editor-secondary-grid">
-        <div class="card panel-attachments">
-          <div class="card-header">
-            <div class="card-title">Allegati Visita</div>
-          </div>
-          <div class="card-body">
-            <div class="editor-advanced-grid">
-              <label class="form-field">
-                <span>File allegato</span>
-                <input type="file" id="attachmentFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv">
-              </label>
-              <label class="form-field">
-                <span>Etichetta allegato</span>
-                <input type="text" id="attachmentLabelInput" placeholder="es: Snapshot ovaio dx o nome file">
-              </label>
-            </div>
-            <div class="editor-actions compact">
-              <div></div>
-              <div class="editor-actions-right">
-                <button class="clr-btn" id="addAttachmentBtn" type="button">Aggiungi allegato</button>
-              </div>
-            </div>
-            <div class="draft-list" id="attachmentDraftList"></div>
-          </div>
-        </div>
-
-        <div class="card panel-protocol">
-          <div class="card-header">
-            <div class="card-title">Eventi Protocollo</div>
-          </div>
-          <div class="card-body">
-            <div class="editor-advanced-grid protocol-grid">
-              <label class="form-field">
-                <span>Data e ora evento</span>
-                <input type="datetime-local" id="protocolEventAtInput">
-              </label>
-              <label class="form-field">
-                <span>Tipo evento</span>
-                <select id="protocolEventTypeInput">
-                  <option value="hormone">Ormone</option>
-                  <option value="device_inserted">Dispositivo inserito</option>
-                  <option value="device_removed">Dispositivo rimosso</option>
-                  <option value="estrus_observed">Estro osservato</option>
-                  <option value="ai">IA</option>
-                  <option value="et">ET</option>
-                  <option value="natural_mating">Monta naturale</option>
-                  <option value="pregnancy_diagnosis">Diagnosi gravidanza</option>
-                  <option value="clinical_note">Nota clinica</option>
-                  <option value="other">Altro</option>
-                </select>
-              </label>
-              <label class="form-field">
-                <span>Nome evento</span>
-                <input type="text" id="protocolEventNameInput" placeholder="es: eCG, ET, CIDR removal">
-              </label>
-              <label class="form-field protocol-wide">
-                <span>Note evento</span>
-                <input type="text" id="protocolEventNotesInput" placeholder="es: transfer su corno ipsilaterale al CL">
-              </label>
-            </div>
-            <div class="editor-actions compact">
-              <div></div>
-              <div class="editor-actions-right">
-                <button class="clr-btn" id="addProtocolEventBtn" type="button">Aggiungi evento</button>
-              </div>
-            </div>
-            <div class="draft-list" id="protocolEventDraftList"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card panel-pregnancy">
+      <div class="card panel-pregnancy-legacy" hidden aria-hidden="true">
         <div class="card-header">
           <div class="card-title">Follow-up Gravidanza</div>
         </div>
         <div class="card-body">
           <div class="toggle-row">
             <label class="checkbox-field">
-              <input type="checkbox" id="pregnancyCheckEnabledInput">
+              <input type="checkbox" id="pregnancyCheckEnabledInputLegacy">
               <span>Salva anche un record di controllo gravidanza</span>
             </label>
           </div>
           <div class="editor-context-grid pregnancy-grid">
             <label class="form-field">
               <span>Data e ora controllo</span>
-              <input type="datetime-local" id="pregnancyCheckAtInput">
+              <input type="datetime-local" id="pregnancyCheckAtInputLegacy">
             </label>
             <label class="form-field">
               <span>Giorni da fecondazione/ET</span>
-              <input type="number" id="pregnancyDaysFromBreedingInput" min="0" step="1" placeholder="es: 18">
+              <input type="number" id="pregnancyDaysFromBreedingInputLegacy" min="0" step="1" placeholder="es: 18">
             </label>
             <label class="form-field">
               <span>Numero embrioni/feti</span>
-              <input type="number" id="pregnancyEmbryoCountInput" min="0" step="1" placeholder="es: 2">
+              <input type="number" id="pregnancyEmbryoCountInputLegacy" min="0" step="1" placeholder="es: 2">
             </label>
             <label class="form-field">
               <span>Heartbeat</span>
-              <select id="pregnancyHeartbeatInput">
+              <select id="pregnancyHeartbeatInputLegacy">
                 <option value="">Non rilevato</option>
                 <option value="true">Presente</option>
                 <option value="false">Assente</option>
@@ -280,11 +216,11 @@
             </label>
             <label class="form-field">
               <span>Vitalità fetale</span>
-              <input type="text" id="pregnancyViabilityInput" placeholder="es: normale">
+              <input type="text" id="pregnancyViabilityInputLegacy" placeholder="es: normale">
             </label>
             <label class="form-field">
               <span>Note follow-up</span>
-              <input type="text" id="pregnancyCheckNotesInput" placeholder="es: camera gestazionale ben evidente">
+              <input type="text" id="pregnancyCheckNotesInputLegacy" placeholder="es: camera gestazionale ben evidente">
             </label>
           </div>
         </div>
@@ -461,8 +397,127 @@
           </div>
         </div>
       </div>
-    </section>
 
+      <div class="editor-secondary-grid editor-secondary-post">
+        <div class="card panel-attachments">
+          <div class="card-header">
+            <div class="card-title">Allegati Visita</div>
+          </div>
+          <div class="card-body">
+            <div class="editor-advanced-grid">
+              <label class="form-field">
+                <span>File allegato</span>
+                <input type="file" id="attachmentFileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv">
+              </label>
+              <label class="form-field">
+                <span>Etichetta allegato</span>
+                <input type="text" id="attachmentLabelInput" placeholder="es: Snapshot ovaio dx o nome file">
+              </label>
+            </div>
+            <div class="editor-actions compact">
+              <div></div>
+              <div class="editor-actions-right">
+                <button class="clr-btn" id="addAttachmentBtn" type="button">Aggiungi allegato</button>
+              </div>
+            </div>
+            <div class="draft-list" id="attachmentDraftList"></div>
+          </div>
+        </div>
+
+        <div class="card panel-protocol">
+          <div class="card-header">
+            <div class="card-title">Eventi Protocollo</div>
+          </div>
+          <div class="card-body">
+            <div class="editor-advanced-grid protocol-grid">
+              <label class="form-field">
+                <span>Data e ora evento</span>
+                <input type="datetime-local" id="protocolEventAtInput">
+              </label>
+              <label class="form-field">
+                <span>Tipo evento</span>
+                <select id="protocolEventTypeInput">
+                  <option value="hormone">Ormone</option>
+                  <option value="device_inserted">Dispositivo inserito</option>
+                  <option value="device_removed">Dispositivo rimosso</option>
+                  <option value="estrus_observed">Estro osservato</option>
+                  <option value="ai">IA</option>
+                  <option value="et">ET</option>
+                  <option value="natural_mating">Monta naturale</option>
+                  <option value="pregnancy_diagnosis">Diagnosi gravidanza</option>
+                  <option value="clinical_note">Nota clinica</option>
+                  <option value="other">Altro</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Nome evento</span>
+                <input type="text" id="protocolEventNameInput" placeholder="es: eCG, ET, CIDR removal">
+              </label>
+              <label class="form-field protocol-wide">
+                <span>Note evento</span>
+                <input type="text" id="protocolEventNotesInput" placeholder="es: transfer su corno ipsilaterale al CL">
+              </label>
+            </div>
+            <div class="editor-actions compact">
+              <div></div>
+              <div class="editor-actions-right">
+                <button class="clr-btn" id="addProtocolEventBtn" type="button">Aggiungi evento</button>
+              </div>
+            </div>
+            <div class="draft-list" id="protocolEventDraftList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel-pregnancy">
+        <div class="card-header">
+          <div class="card-title">Follow-up Gravidanza</div>
+        </div>
+        <div class="card-body">
+          <div class="toggle-row">
+            <label class="checkbox-field">
+              <input type="checkbox" id="pregnancyCheckEnabledInput">
+              <span>Salva anche un record di controllo gravidanza</span>
+            </label>
+          </div>
+          <div class="editor-context-grid pregnancy-grid">
+            <label class="form-field">
+              <span>Data e ora controllo</span>
+              <input type="datetime-local" id="pregnancyCheckAtInput">
+            </label>
+            <label class="form-field">
+              <span>Giorni da fecondazione/ET</span>
+              <input type="number" id="pregnancyDaysFromBreedingInput" min="0" step="1" placeholder="es: 18">
+            </label>
+            <label class="form-field">
+              <span>Numero embrioni/feti</span>
+              <input type="number" id="pregnancyEmbryoCountInput" min="0" step="1" placeholder="es: 2">
+            </label>
+            <label class="form-field">
+              <span>Heartbeat</span>
+              <select id="pregnancyHeartbeatInput">
+                <option value="">Non rilevato</option>
+                <option value="true">Presente</option>
+                <option value="false">Assente</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span>Vitalit&agrave; fetale</span>
+              <input type="text" id="pregnancyViabilityInput" placeholder="es: normale">
+            </label>
+            <label class="form-field">
+              <span>Note follow-up</span>
+              <input type="text" id="pregnancyCheckNotesInput" placeholder="es: camera gestazionale ben evidente">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-submit-bar">
+        <button class="clr-btn" id="resetVisitEditorBtn" type="button">Reset editor</button>
+        <button class="primary-btn" id="saveVisitBtn" type="button">Salva visita</button>
+      </div>
+    </section>
     </section>
 
     <section class="view-panel" id="managementView">
@@ -664,6 +719,7 @@
 <script src="assets/scripts/repositories/firestoreRepository.js"></script>
 <script src="assets/scripts/repositories/bootstrap.js"></script>
 <script src="assets/scripts/dom.js"></script>
+<script src="assets/scripts/theme.js"></script>
 <script src="assets/scripts/session.js"></script>
 <script src="assets/scripts/ui.js"></script>
 <script src="assets/scripts/canvas.js"></script>
