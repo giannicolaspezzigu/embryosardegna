@@ -50,8 +50,25 @@ header {
 
 .brand {
   display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-copy {
+  display: flex;
   flex-direction: column;
   gap: 1px;
+}
+
+.brand-logo {
+  display: block;
+  width: 118px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 6px 8px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
 }
 
 .brand-name {
@@ -861,6 +878,18 @@ header {
 }
 
 @media (max-width: 640px) {
+  .header-top {
+    align-items: stretch;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .brand-logo {
+    width: 104px;
+  }
+
   .scan-section-header {
     align-items: stretch;
     flex-direction: column;

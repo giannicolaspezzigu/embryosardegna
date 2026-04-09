@@ -11,8 +11,11 @@
 <header>
   <div class="header-top">
     <div class="brand">
-      <div class="brand-name">Embryosardegna</div>
-      <div class="brand-sub">Follicular Dynamics Evaluation</div>
+      <img class="brand-logo" src="assets/images/embryosardegna-logo.jpg" alt="Logo ufficiale Embryo Sardegna">
+      <div class="brand-copy">
+        <div class="brand-name">Embryosardegna</div>
+        <div class="brand-sub">Follicular Dynamics Evaluation</div>
+      </div>
     </div>
     <div class="header-controls">
       <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
@@ -451,7 +454,7 @@
         <div class="card full panel-session-log">
           <div class="card-header">
             <div class="card-title">&#x1F4CB; Registro Sessione</div>
-            <button class="export-btn" id="exportBtn" type="button">&#x2B07; Esporta CSV</button>
+            <button class="export-btn" id="exportBtn" type="button">&#x2B07; Esporta Excel</button>
           </div>
           <div class="log-body" id="logBody">
             <div class="log-row"><span class="lt">-</span><span class="ls">-</span><span class="ld" style="color:var(--muted)">Inizia ad aggiungere strutture.</span></div>
@@ -665,6 +668,7 @@
 <script src="assets/scripts/ui.js"></script>
 <script src="assets/scripts/canvas.js"></script>
 <script src="assets/scripts/voice.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="assets/scripts/export.js"></script>
 <script src="assets/scripts/navigation.js"></script>
 <script src="assets/scripts/attachmentViewer.js"></script>
