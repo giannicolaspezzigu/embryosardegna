@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Embryo Sardegna - Intro</title>
+  <link rel="stylesheet" href="assets/styles/intro.css">
+</head>
+<body>
+  <main class="intro-shell" aria-labelledby="appTitle">
+    <canvas class="cinema-canvas" id="cinemaCanvas" aria-hidden="true"></canvas>
+
+    <div class="color-curtain" aria-hidden="true">
+      <span class="light-sheet sheet-a"></span>
+      <span class="light-sheet sheet-b"></span>
+      <span class="light-sheet sheet-c"></span>
+      <span class="light-sheet sheet-d"></span>
+    </div>
+
+    <div class="studio-mark" aria-hidden="true">Spez Technologies</div>
+    <div class="studio-track" aria-hidden="true">
+      <span>Spez Technologies</span>
+      <span>Spez Technologies</span>
+      <span>Spez Technologies</span>
+    </div>
+
+    <section class="intro-stage" aria-label="Embryo Sardegna presentation">
+      <div class="title-system">
+        <p class="eyebrow">Embryo Sardegna presents</p>
+        <h1 id="appTitle">Follicular Dynamic Evaluation</h1>
+        <p class="subtitle">Advanced reproductive imaging platform</p>
+      </div>
+
+      <div class="logo-video" aria-label="Animated Embryo Sardegna logo video">
+        <div class="logo-screen">
+          <span class="orbit orbit-a" aria-hidden="true"></span>
+          <span class="orbit orbit-b" aria-hidden="true"></span>
+          <span class="orbit orbit-c" aria-hidden="true"></span>
+          <span class="sweep sweep-a" aria-hidden="true"></span>
+          <span class="sweep sweep-b" aria-hidden="true"></span>
+          <span class="sweep sweep-c" aria-hidden="true"></span>
+          <span class="spark spark-a" aria-hidden="true"></span>
+          <span class="spark spark-b" aria-hidden="true"></span>
+          <span class="spark spark-c" aria-hidden="true"></span>
+          <div class="logo-plate">
+            <img src="assets/images/embryosardegna-logo.jpg" alt="Embryo Sardegna logo">
+            <span class="logo-glint" aria-hidden="true"></span>
+          </div>
+        </div>
+        <div class="video-meta" aria-hidden="true">
+          <span class="pulse-dot"></span>
+          <span class="video-line"><span></span></span>
+          <span class="timecode">00:04</span>
+        </div>
+      </div>
+
+      <form class="login-panel" id="introLoginForm" autocomplete="off">
+        <div class="login-heading">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Operator access</span>
+        </div>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" name="username" placeholder="operator.demo" value="operator.demo" required>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" name="password" placeholder="********" value="demo" required>
+        </label>
+        <button class="login-button" type="submit">
+          <span class="button-copy">Enter demo</span>
+          <span class="button-progress" aria-hidden="true"></span>
+        </button>
+        <p class="login-state" id="loginState" role="status" aria-live="polite">Demo login ready</p>
+      </form>
+    </section>
+  </main>
+
+  <script src="assets/scripts/intro.js"></script>
+</body>
+</html>

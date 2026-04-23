@@ -122,15 +122,6 @@
     return JSON.parse(JSON.stringify(style));
   }
 
-  function escapeHtml(value) {
-    return String(value === null || value === undefined ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
   function setCell(worksheet, address, value, style) {
     const cell = worksheet.getCell(address);
     cell.value = value;
@@ -183,10 +174,6 @@
     return animal.earTag || animal.animalCode || animal.displayName || animal.id || "";
   }
 
-  function getRecordSessionId(record) {
-    return (record && record.sessionId) || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-  }
-
   function getPostPartumDays(animal, visit) {
     const sources = [
       visit && visit.protocolContext && visit.protocolContext.daysPostPartum,
@@ -222,17 +209,6 @@
     }
 
     return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
-  }
-
-  function parseDateFilter(value, endOfDay) {
-    if (!value) {
-      return null;
-    }
-
-    const timePart = endOfDay ? "T23:59:59.999" : "T00:00:00.000";
-    const date = new Date(`${value}${timePart}`);
-
-    return Number.isNaN(date.getTime()) ? null : date.getTime();
   }
 
   function getSideStructures(visit, sideKey) {
@@ -517,53 +493,7 @@
     });
   }
 
-  function buildExportFiltersFromDom() {
-    const refs = app.dom.refs;
-
-    return {
-      sessionId: refs.exportSessionInput.value || "all",
-      dateFrom: refs.exportDateFromInput.value || "",
-      dateTo: refs.exportDateToInput.value || "",
-      farmName: refs.exportFarmInput.value || "all",
-      operatorName: refs.exportOperatorInput.value.trim().toLowerCase(),
-    };
-  }
-
-  function matchesExportFilters(animal, visit, filters) {
-    const settings = filters || {};
-    const visitTimestamp = new Date(visit.visitAt).getTime();
-    const dateFrom = parseDateFilter(settings.dateFrom, false);
-    const dateTo = parseDateFilter(settings.dateTo, true);
-
-    if (settings.sessionId && settings.sessionId !== "all") {
-      const animalSessionId = getRecordSessionId(animal);
-      const visitSessionId = getRecordSessionId(visit);
-
-      if (animalSessionId !== settings.sessionId && visitSessionId !== settings.sessionId) {
-        return false;
-      }
-    }
-
-    if (dateFrom !== null && (!Number.isFinite(visitTimestamp) || visitTimestamp < dateFrom)) {
-      return false;
-    }
-
-    if (dateTo !== null && (!Number.isFinite(visitTimestamp) || visitTimestamp > dateTo)) {
-      return false;
-    }
-
-    if (settings.farmName && settings.farmName !== "all" && (animal.farmName || "") !== settings.farmName) {
-      return false;
-    }
-
-    if (settings.operatorName && String(visit.operatorName || "").toLowerCase().indexOf(settings.operatorName) < 0) {
-      return false;
-    }
-
-    return true;
-  }
-
-  async function collectExportGroups(filters) {
+  async function collectExportGroups() {
     const repository = app.data.repository;
     const clinicId = app.data.activeClinicId;
     const animals = sortAnimalsForExport(await repository.listAnimals(clinicId));
@@ -571,9 +501,7 @@
 
     for (let index = 0; index < animals.length; index += 1) {
       const animal = animals[index];
-      const visits = sortVisitsForExport(await repository.listAnimalVisits(clinicId, animal.id)).filter((visit) => {
-        return matchesExportFilters(animal, visit, filters);
-      });
+      const visits = sortVisitsForExport(await repository.listAnimalVisits(clinicId, animal.id));
 
       if (!visits.length) {
         continue;
@@ -626,48 +554,13 @@
       });
     },
 
-    refreshFilters() {
-      const refs = app.dom.refs;
-      const sessions = app.state.workspace.sessions || [];
-      const allAnimals = app.state.workspace.allAnimals || app.state.workspace.animals || [];
-      const activeSessionId = app.state.context.activeSessionId || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-      const currentSessionValue = refs.exportSessionInput.value || activeSessionId;
-      const currentFarmValue = refs.exportFarmInput.value || "all";
-      const sessionOptions =
-        '<option value="all">Tutte le sessioni</option>' +
-        sessions
-          .map((session) => {
-            const label = `${session.name}${session.code ? ` | ${session.code}` : ""}`;
-            return `<option value="${escapeHtml(session.id)}">${escapeHtml(label)}</option>`;
-          })
-          .join("");
-      const farmNames = Array.from(
-        new Set(
-          allAnimals
-            .map((animal) => animal.farmName || "")
-            .filter(Boolean)
-            .sort((left, right) => left.localeCompare(right, "it"))
-        )
-      );
-      const farmOptions =
-        '<option value="all">Tutti gli allevamenti</option>' +
-        farmNames.map((farmName) => `<option value="${escapeHtml(farmName)}">${escapeHtml(farmName)}</option>`).join("");
-
-      refs.exportSessionInput.innerHTML = sessionOptions;
-      refs.exportFarmInput.innerHTML = farmOptions;
-
-      refs.exportSessionInput.value = sessions.some((session) => session.id === currentSessionValue) || currentSessionValue === "all" ? currentSessionValue : activeSessionId;
-      refs.exportFarmInput.value = farmNames.indexOf(currentFarmValue) >= 0 ? currentFarmValue : "all";
-    },
-
     async exportWorkbook() {
       if (!assertExcelJsAvailable()) {
         app.ui.toast("Libreria Excel non disponibile nella pagina", "warn");
         return;
       }
 
-      const filters = buildExportFiltersFromDom();
-      const groups = await collectExportGroups(filters);
+      const groups = await collectExportGroups();
       const workbook = new window.ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Follicoli");
       let rowNumber = 3;

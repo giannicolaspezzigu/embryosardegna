@@ -44,65 +44,6 @@
     return app.utils.humanizeEnum(app.config.pregnancyStatusLabels, status, "Non definito");
   }
 
-  const ACTIVE_SESSION_STORAGE_KEY = "embryosardegna.activeSessionId";
-
-  function getRecordSessionId(record) {
-    return (record && record.sessionId) || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-  }
-
-  function getRecordSessionName(record) {
-    return (record && record.sessionName) || app.domain.modelUtils.UNASSIGNED_SESSION_NAME;
-  }
-
-  function formatSessionOption(session) {
-    const code = session.code ? ` | ${session.code}` : "";
-    return `${session.name}${code}`;
-  }
-
-  function createSessionOptionsHtml(sessions, selectedSessionId, options) {
-    const settings = options || {};
-    const allOption = settings.includeAll ? '<option value="all">Tutte le sessioni</option>' : "";
-
-    return (
-      allOption +
-      sessions
-        .map((session) => {
-          const selected = session.id === selectedSessionId ? " selected" : "";
-          return `<option value="${escapeHtml(session.id)}"${selected}>${escapeHtml(formatSessionOption(session))}</option>`;
-        })
-        .join("")
-    );
-  }
-
-  function isoToDateInputValue(value) {
-    if (!value) {
-      return "";
-    }
-
-    const raw = String(value);
-    const match = raw.match(/^(\d{4}-\d{2}-\d{2})/);
-
-    if (match) {
-      return match[1];
-    }
-
-    const date = new Date(raw);
-    if (Number.isNaN(date.getTime())) {
-      return "";
-    }
-
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  }
-
-  function dateInputValueToIso(value) {
-    if (!value) {
-      return null;
-    }
-
-    const date = new Date(`${value}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? null : date.toISOString();
-  }
-
   function formatStructureType(type) {
     const labels = {
       follicle: "Follicolo",
@@ -305,20 +246,7 @@
       this.bindEvents();
       this.renderRepositoryMode();
       await this.loadClinic();
-      await this.loadSessions({ recomputeDateRanges: true });
-      this.renderSessionControls();
-      this.renderCurrentSession();
-
-      const savedSessionId = window.localStorage ? window.localStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) : null;
-      const canRestoreSession = savedSessionId && app.state.workspace.sessions.some((session) => session.id === savedSessionId);
-
-      if (canRestoreSession) {
-        await this.activateSession(savedSessionId, { silent: true, keepModalClosed: true });
-      } else {
-        this.clearSelectedAnimal();
-      }
-
-      this.openSessionModal();
+      await this.refreshAnimals();
     },
 
     bindEvents() {
@@ -331,31 +259,6 @@
 
       refs.newAnimalBtn.addEventListener("click", () => {
         this.openAnimalModal();
-      });
-
-      refs.openSessionModalBtn.addEventListener("click", () => {
-        this.openSessionModal();
-      });
-
-      refs.closeSessionModalBtn.addEventListener("click", () => {
-        this.closeSessionModal();
-      });
-
-      refs.sessionModal.addEventListener("click", (event) => {
-        if (event.target === refs.sessionModal) {
-          this.closeSessionModal();
-        }
-      });
-
-      refs.loadSessionBtn.addEventListener("click", () => {
-        this.loadSelectedSessionFromModal().catch((error) => {
-          console.error(error);
-          app.ui.toast("Errore durante il caricamento della sessione", "warn");
-        });
-      });
-
-      refs.createAndLoadSessionBtn.addEventListener("click", () => {
-        this.createAndLoadSessionFromModal();
       });
 
       refs.cancelAnimalBtn.addEventListener("click", () => {
@@ -427,167 +330,11 @@
       app.state.workspace.clinic = clinic;
     },
 
-    async loadSessions(options) {
-      const settings = options || {};
-
-      if (settings.recomputeDateRanges && typeof app.data.repository.recomputeAllSessionDateRanges === "function") {
-        await app.data.repository.recomputeAllSessionDateRanges(app.data.activeClinicId);
-      }
-
-      const sessions = await app.data.repository.listSessions(app.data.activeClinicId);
-      app.state.workspace.sessions = sessions;
-
-      if (app.state.context.activeSessionId) {
-        app.state.workspace.activeSession =
-          sessions.find((session) => session.id === app.state.context.activeSessionId) || app.state.workspace.activeSession;
-      }
-
-      return sessions;
-    },
-
-    getSessionById(sessionId) {
-      return (
-        app.state.workspace.sessions.find((session) => session.id === sessionId) ||
-        app.state.workspace.sessions.find((session) => session.id === app.domain.modelUtils.UNASSIGNED_SESSION_ID) ||
-        null
-      );
-    },
-
-    renderSessionControls() {
-      const refs = app.dom.refs;
-      const sessions = app.state.workspace.sessions || [];
-      const activeSessionId = app.state.context.activeSessionId || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-      const sessionOptions = createSessionOptionsHtml(sessions, activeSessionId);
-
-      refs.sessionLoadSelect.innerHTML = sessionOptions;
-      refs.managementActiveSessionSelect.innerHTML = sessionOptions;
-      refs.managementAnimalSessionInput.innerHTML = sessionOptions;
-      refs.exportSessionInput.innerHTML = createSessionOptionsHtml(sessions, activeSessionId, { includeAll: true });
-
-      refs.sessionLoadSelect.value = activeSessionId;
-      refs.managementActiveSessionSelect.value = activeSessionId;
-      refs.exportSessionInput.value = activeSessionId;
-
-      const animal = app.state.workspace.selectedAnimal;
-      if (animal) {
-        refs.managementAnimalSessionInput.value = getRecordSessionId(animal);
-      }
-    },
-
-    renderCurrentSession() {
-      const session = app.state.workspace.activeSession;
-      const label = session ? session.name : "--";
-      app.dom.refs.openSessionModalBtn.textContent = `Sessione: ${label}`;
-      app.dom.refs.managementSessionHeading.textContent = session
-        ? `Sessione corrente: ${session.name}`
-        : "Carica, crea o modifica una sessione di studio";
-    },
-
-    async activateSession(sessionId, options) {
-      const settings = options || {};
-      const session = this.getSessionById(sessionId);
-
-      if (!session) {
-        app.ui.toast("Sessione non disponibile", "warn");
-        return;
-      }
-
-      app.state.context.activeSessionId = session.id;
-      app.state.workspace.activeSession = session;
-
-      if (window.localStorage) {
-        window.localStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, session.id);
-      }
-
-      this.renderCurrentSession();
-      this.renderSessionControls();
-
-      if (!settings.keepModalClosed) {
-        this.closeSessionModal();
-      }
-
-      await this.refreshAnimals();
-
-      if (!settings.silent) {
-        app.ui.toast(`Sessione caricata: ${session.name}`);
-      }
-    },
-
-    openSessionModal() {
-      this.renderSessionControls();
-      app.dom.refs.closeSessionModalBtn.hidden = !app.state.context.activeSessionId;
-      app.dom.refs.sessionModal.classList.add("open");
-      app.dom.refs.sessionLoadSelect.focus();
-    },
-
-    closeSessionModal() {
-      if (app.state.context.activeSessionId) {
-        app.dom.refs.sessionModal.classList.remove("open");
-      }
-    },
-
-    async loadSelectedSessionFromModal() {
-      const sessionId = app.dom.refs.sessionLoadSelect.value || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-      await this.activateSession(sessionId);
-    },
-
-    async createSession(payload) {
-      const createdSession = await app.data.repository.createSession(
-        app.domain.helpers.mergeDeep(payload || {}, {
-          clinicId: app.data.activeClinicId,
-          updatedBy: "demo_user",
-        })
-      );
-
-      await this.loadSessions();
-      this.renderSessionControls();
-      return createdSession;
-    },
-
-    async createAndLoadSessionFromModal() {
-      const refs = app.dom.refs;
-      const name = refs.newSessionNameInput.value.trim();
-
-      if (!name) {
-        app.ui.toast("Inserisci un nome per la nuova sessione", "warn");
-        refs.newSessionNameInput.focus();
-        return;
-      }
-
-      refs.createAndLoadSessionBtn.disabled = true;
-
-      try {
-        const session = await this.createSession({
-          name,
-          code: refs.newSessionCodeInput.value.trim(),
-          status: "active",
-        });
-
-        refs.newSessionNameInput.value = "";
-        refs.newSessionCodeInput.value = "";
-        await this.activateSession(session.id);
-      } catch (error) {
-        console.error(error);
-        app.ui.toast("Errore durante la creazione della sessione", "warn");
-      } finally {
-        refs.createAndLoadSessionBtn.disabled = false;
-      }
-    },
-
     async refreshAnimals(preferredAnimalId) {
-      const allAnimals = await app.data.repository.listAnimals(app.data.activeClinicId);
-      const activeSessionId = app.state.context.activeSessionId;
-      const animals = activeSessionId
-        ? allAnimals.filter((animal) => getRecordSessionId(animal) === activeSessionId)
-        : [];
+      const animals = await app.data.repository.listAnimals(app.data.activeClinicId);
 
-      app.state.workspace.allAnimals = allAnimals;
       app.state.workspace.animals = animals;
       this.renderAnimalList();
-
-      if (app.exporter && typeof app.exporter.refreshFilters === "function") {
-        app.exporter.refreshFilters();
-      }
 
       if (!animals.length) {
         this.clearSelectedAnimal();
@@ -620,7 +367,6 @@
           animal.groupName,
           animal.earTag,
           animal.breed,
-          getRecordSessionName(animal),
         ]
           .join(" ")
           .toLowerCase();
@@ -636,11 +382,7 @@
       refs.animalCountBadge.textContent = String(app.state.workspace.animals.length);
 
       if (!filteredAnimals.length) {
-        const session = app.state.workspace.activeSession;
-        const message = session
-          ? `Nessun animale nella sessione ${session.name}.`
-          : "Carica una sessione per visualizzare gli animali.";
-        refs.animalList.innerHTML = createEmptyState(app.state.workspace.animalSearchTerm ? "Nessun animale corrisponde ai filtri correnti." : message);
+        refs.animalList.innerHTML = createEmptyState("Nessun animale corrisponde ai filtri correnti.");
         return;
       }
 
@@ -695,19 +437,13 @@
     renderSelectedAnimal(animal) {
       const refs = app.dom.refs;
       const lastSummary = animal.lastVisitSummary || {};
-      const metaParts = [
-        formatSpecies(animal.species),
-        animal.breed || "Razza N/D",
-        animal.farmName || "Allevamento N/D",
-        getRecordSessionName(animal),
-      ];
+      const metaParts = [formatSpecies(animal.species), animal.breed || "Razza N/D", animal.farmName || "Allevamento N/D"];
 
       refs.selectedAnimalTitle.textContent = animal.displayName || animal.animalCode;
       refs.selectedAnimalMeta.textContent = metaParts.join(" | ");
 
       refs.selectedAnimalPills.innerHTML = [
         animal.reproductiveRole ? `<span class="pill accent">${escapeHtml(formatRole(animal.reproductiveRole))}</span>` : "",
-        animal.sessionId ? `<span class="pill blue">${escapeHtml(getRecordSessionName(animal))}</span>` : "",
         animal.groupName ? `<span class="pill blue">${escapeHtml(animal.groupName)}</span>` : "",
         animal.status ? `<span class="pill">${escapeHtml(animal.status.toUpperCase())}</span>` : "",
         animal.lastVisitSummary && animal.lastVisitSummary.pregnancyStatus !== "unknown"
@@ -848,12 +584,6 @@
     openAnimalModal() {
       const refs = app.dom.refs;
 
-      if (!app.state.context.activeSessionId) {
-        app.ui.toast("Carica prima una sessione", "warn");
-        this.openSessionModal();
-        return;
-      }
-
       refs.animalCodeInput.value = "";
       refs.animalSpeciesInput.value = "ovine";
       refs.animalBreedInput.value = "";
@@ -871,7 +601,6 @@
     async handleCreateAnimal() {
       const refs = app.dom.refs;
       const animalCode = refs.animalCodeInput.value.trim();
-      const activeSession = app.state.workspace.activeSession;
 
       if (!animalCode) {
         app.ui.toast("Inserisci un codice animale", "warn");
@@ -879,16 +608,8 @@
         return;
       }
 
-      if (!activeSession) {
-        app.ui.toast("Carica prima una sessione", "warn");
-        this.openSessionModal();
-        return;
-      }
-
       const payload = {
         clinicId: app.data.activeClinicId,
-        sessionId: activeSession.id,
-        sessionName: activeSession.name,
         animalCode,
         displayName: animalCode,
         species: refs.animalSpeciesInput.value,

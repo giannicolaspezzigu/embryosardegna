@@ -12,9 +12,6 @@
     return new Date().toISOString();
   }
 
-  const UNASSIGNED_SESSION_ID = "session_unassigned";
-  const UNASSIGNED_SESSION_NAME = "Da assegnare";
-
   function createLastVisitSummaryTemplate() {
     return {
       totalFollicles: 0,
@@ -55,48 +52,10 @@
     };
   }
 
-  function createSessionTemplate() {
-    return {
-      id: "",
-      clinicId: "clinic_main",
-      name: "",
-      code: "",
-      description: "",
-      status: "active",
-      startDate: null,
-      endDate: null,
-      notes: "",
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-      updatedBy: "",
-      schemaVersion: 2,
-    };
-  }
-
-  function createUnassignedSessionTemplate() {
-    return {
-      id: UNASSIGNED_SESSION_ID,
-      clinicId: "clinic_main",
-      name: UNASSIGNED_SESSION_NAME,
-      code: "UNASSIGNED",
-      description: "Sessione di appoggio per dati esistenti non ancora assegnati.",
-      status: "active",
-      startDate: null,
-      endDate: null,
-      notes: "",
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-      updatedBy: "system",
-      schemaVersion: 2,
-    };
-  }
-
   function createAnimalTemplate() {
     return {
       id: "",
       clinicId: "clinic_main",
-      sessionId: UNASSIGNED_SESSION_ID,
-      sessionName: UNASSIGNED_SESSION_NAME,
       animalCode: "",
       displayName: "",
       species: "ovine",
@@ -195,8 +154,6 @@
     return {
       id: "",
       clinicId: "clinic_main",
-      sessionId: UNASSIGNED_SESSION_ID,
-      sessionName: UNASSIGNED_SESSION_NAME,
       animalId: "",
       visitAt: nowIso(),
       visitPurpose: "follicular_monitoring",
@@ -295,14 +252,10 @@
   domain.modelUtils = {
     createId,
     nowIso,
-    UNASSIGNED_SESSION_ID,
-    UNASSIGNED_SESSION_NAME,
   };
 
   domain.models = {
     createClinicTemplate,
-    createSessionTemplate,
-    createUnassignedSessionTemplate,
     createAnimalTemplate,
     createVisitTemplate,
     createStructureTemplate,

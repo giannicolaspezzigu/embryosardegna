@@ -35,7 +35,6 @@
     pregnancyStatus: ["unknown", "suspected", "positive", "negative", "loss_suspected", "loss_confirmed", "completed"],
     attachmentType: ["image", "video", "snapshot", "document", "report"],
     season: ["breeding", "non_breeding", "transitional", "unknown"],
-    sessionStatus: ["active", "archived"],
     syncStatus: ["pending", "synced", "error"],
   };
 })();

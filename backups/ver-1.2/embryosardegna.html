@@ -28,7 +28,6 @@
         <button class="theme-btn" id="themeLightBtn" data-theme-choice="light" type="button">Bright Lab</button>
       </div>
       <div class="header-status">
-        <button class="session-chip" id="openSessionModalBtn" type="button">Sessione: --</button>
         <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
         <div class="date-badge" id="dateBadge"></div>
       </div>
@@ -391,6 +390,7 @@
         <div class="card full panel-session-log">
           <div class="card-header">
             <div class="card-title">&#x1F4CB; Registro Sessione</div>
+            <button class="export-btn" id="exportBtn" type="button">&#x2B07; Esporta Excel</button>
           </div>
           <div class="log-body" id="logBody">
             <div class="log-row"><span class="lt">-</span><span class="ls">-</span><span class="ld" style="color:var(--muted)">Inizia ad aggiungere strutture.</span></div>
@@ -522,56 +522,6 @@
 
     <section class="view-panel" id="managementView">
       <section class="workspace-grid management-grid">
-        <div class="card workspace-card management-session-card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Sessioni</div>
-              <div class="workspace-subheading" id="managementSessionHeading">Carica, crea o modifica una sessione di studio</div>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="form-grid management-form-grid">
-              <label class="form-field">
-                <span>Sessione corrente</span>
-                <select id="managementActiveSessionSelect"></select>
-              </label>
-              <label class="form-field">
-                <span>Stato</span>
-                <select id="managementSessionStatusInput">
-                  <option value="active">Attiva</option>
-                  <option value="archived">Archiviata</option>
-                </select>
-              </label>
-              <label class="form-field">
-                <span>Nome sessione</span>
-                <input type="text" id="managementSessionNameInput" placeholder="es: Studio riceventi aprile">
-              </label>
-              <label class="form-field">
-                <span>Codice sessione</span>
-                <input type="text" id="managementSessionCodeInput" placeholder="es: REC-APR-2026">
-              </label>
-              <label class="form-field">
-                <span>Data inizio</span>
-                <input type="date" id="managementSessionStartDateInput">
-              </label>
-              <label class="form-field">
-                <span>Data fine</span>
-                <input type="date" id="managementSessionEndDateInput">
-              </label>
-              <label class="form-field management-wide-field">
-                <span>Note sessione</span>
-                <input type="text" id="managementSessionNotesInput" placeholder="Note operative o descrizione dello studio">
-              </label>
-            </div>
-            <div class="management-actions">
-              <button class="primary-btn" id="loadManagementSessionBtn" type="button">Carica sessione</button>
-              <button class="secondary-btn" id="createManagementSessionBtn" type="button">Crea nuova</button>
-              <button class="clr-btn" id="saveManagementSessionBtn" type="button">Salva sessione</button>
-              <button class="clr-btn danger-btn" id="deleteManagementSessionBtn" type="button">Elimina sessione</button>
-            </div>
-          </div>
-        </div>
-
         <div class="card workspace-card">
           <div class="card-header">
             <div>
@@ -599,10 +549,6 @@
               <label class="form-field">
                 <span>Allevamento</span>
                 <input type="text" id="managementAnimalFarmInput" placeholder="Allevamento">
-              </label>
-              <label class="form-field">
-                <span>Sessione animale</span>
-                <select id="managementAnimalSessionInput"></select>
               </label>
               <label class="form-field">
                 <span>Ruolo</span>
@@ -638,42 +584,6 @@
           </div>
           <div class="card-body">
             <div class="management-visit-list" id="managementVisitList"></div>
-          </div>
-        </div>
-
-        <div class="card workspace-card management-export-card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Export Excel</div>
-              <div class="workspace-subheading" id="exportSummaryBadge">Filtra visite e animali prima dell'esportazione</div>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="form-grid management-form-grid">
-              <label class="form-field">
-                <span>Sessione</span>
-                <select id="exportSessionInput"></select>
-              </label>
-              <label class="form-field">
-                <span>Allevamento</span>
-                <select id="exportFarmInput"></select>
-              </label>
-              <label class="form-field">
-                <span>Visite dal</span>
-                <input type="date" id="exportDateFromInput">
-              </label>
-              <label class="form-field">
-                <span>Visite al</span>
-                <input type="date" id="exportDateToInput">
-              </label>
-              <label class="form-field management-wide-field">
-                <span>Operatore</span>
-                <input type="text" id="exportOperatorInput" placeholder="Filtra per nome operatore">
-              </label>
-            </div>
-            <div class="management-actions">
-              <button class="export-btn" id="exportBtn" type="button">Esporta Excel</button>
-            </div>
           </div>
         </div>
       </section>
@@ -719,59 +629,6 @@
       </section>
     </section>
   </main>
-</div>
-
-<div class="modal-bg" id="sessionModal">
-  <div class="modal-box modal-box-wide session-modal-box">
-    <div class="session-modal-head">
-      <div>
-        <h3>Sessione di studio</h3>
-        <p>Carica una sessione esistente o creane una nuova prima di lavorare sui dati.</p>
-      </div>
-      <button class="modal-close-btn" id="closeSessionModalBtn" type="button" aria-label="Chiudi popup sessione">&times;</button>
-    </div>
-    <div class="session-modal-grid">
-      <div class="session-modal-panel">
-        <label class="form-field">
-          <span>Sessione esistente</span>
-          <select id="sessionLoadSelect"></select>
-        </label>
-        <button class="primary-btn" id="loadSessionBtn" type="button">Carica sessione</button>
-      </div>
-      <div class="session-modal-panel">
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Nome nuova sessione</span>
-            <input type="text" id="newSessionNameInput" placeholder="es: Studio sincronizzazione">
-          </label>
-          <label class="form-field">
-            <span>Codice</span>
-            <input type="text" id="newSessionCodeInput" placeholder="opzionale">
-          </label>
-        </div>
-        <button class="secondary-btn" id="createAndLoadSessionBtn" type="button">Crea e carica</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-bg" id="sessionDeleteModal">
-  <div class="modal-box modal-box-wide session-delete-modal-box">
-    <h3>Elimina sessione</h3>
-    <p id="sessionDeleteModalIntro">Scegli cosa eliminare dalla sessione selezionata.</p>
-    <label class="form-field">
-      <span>Cosa vuoi eliminare</span>
-      <select id="sessionDeleteModeInput">
-        <option value="visits">Solo le visite della sessione</option>
-        <option value="all">Visite e animali della sessione</option>
-      </select>
-    </label>
-    <div class="session-delete-warning" id="sessionDeleteWarningText"></div>
-    <div class="modal-btns">
-      <button class="mb-skip" id="cancelSessionDeleteBtn" type="button">Annulla</button>
-      <button class="mb-ok danger-confirm-btn" id="confirmSessionDeleteBtn" type="button">Conferma eliminazione</button>
-    </div>
-  </div>
 </div>
 
 <div class="modal-bg" id="animalModal">

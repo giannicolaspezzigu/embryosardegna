@@ -288,25 +288,6 @@ body.header-hidden header {
   box-shadow: inset 0 1px 0 var(--card-highlight);
 }
 
-.session-chip {
-  max-width: 190px;
-  padding: 10px 12px;
-  border: 1px solid rgba(65, 234, 255, 0.24);
-  border-radius: 14px;
-  background: rgba(65, 234, 255, 0.1);
-  color: var(--accent);
-  cursor: pointer;
-  font-family: "DM Mono", monospace;
-  font-size: 0.72rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.session-chip:hover {
-  border-color: rgba(65, 234, 255, 0.42);
-}
-
 @media (max-width: 1180px) {
   .header-top {
     grid-template-columns: 1fr;
@@ -388,24 +369,12 @@ body.header-hidden header {
   .sidebar {
     position: static;
   }
-
-  .sidebar-card {
-    height: auto;
-    max-height: none;
-  }
-
-  .animal-list {
-    max-height: 55vh;
-  }
 }
 
 .sidebar-card {
-  height: calc(100vh - 110px);
-  max-height: calc(100vh - 110px);
-  min-height: 0;
+  min-height: calc(100vh - 110px);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .sidebar-tools {
@@ -460,12 +429,8 @@ body.header-hidden header {
 .animal-list {
   display: grid;
   gap: 8px;
-  flex: 1;
-  min-height: 0;
   padding: 0 16px 16px;
   overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
 }
 
 .animal-item {
@@ -1043,11 +1008,6 @@ body.header-hidden header {
 
 .management-form-grid {
   margin-bottom: 14px;
-}
-
-.management-session-card,
-.management-export-card {
-  grid-column: 1 / -1;
 }
 
 .management-wide-field {
@@ -1975,73 +1935,6 @@ canvas.ov-canvas {
   border-color: rgba(77, 184, 255, 0.35);
 }
 
-.session-modal-box {
-  width: min(760px, 94vw);
-  border-color: rgba(65, 234, 255, 0.35);
-}
-
-.session-delete-modal-box {
-  width: min(560px, 94vw);
-  border-color: rgba(255, 107, 107, 0.42);
-}
-
-.session-modal-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.modal-close-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface2);
-  color: var(--muted);
-  cursor: pointer;
-  font-family: "Sora", sans-serif;
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.modal-close-btn:hover {
-  border-color: var(--accent2);
-  color: var(--accent2);
-}
-
-.session-modal-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 16px;
-}
-
-.session-modal-panel {
-  display: grid;
-  align-content: start;
-  gap: 12px;
-}
-
-.session-delete-warning {
-  margin: 0 0 16px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 107, 107, 0.35);
-  border-radius: 8px;
-  background: rgba(255, 107, 107, 0.08);
-  color: var(--accent3);
-  font-family: "DM Mono", monospace;
-  font-size: 0.78rem;
-  line-height: 1.5;
-}
-
-.danger-confirm-btn {
-  background: linear-gradient(135deg, #ff6b6b, #ffb86b);
-  color: #220b0b;
-}
-
 .modal-box h3 {
   margin-bottom: 6px;
   color: var(--gold);
@@ -2140,10 +2033,6 @@ canvas.ov-canvas {
 
 @media (max-width: 640px) {
   .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .session-modal-grid {
     grid-template-columns: 1fr;
   }
 }

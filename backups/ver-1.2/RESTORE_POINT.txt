@@ -1,0 +1,5 @@
+﻿Embryosardegna restore point
+Version: ver 1.2
+Created: 2026-04-22 23:52:39 +02:00
+Scope: code snapshot before session/export refactor
+Excluded: .git, Exceldorper 62 31.03.xlsx

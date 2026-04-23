@@ -4,15 +4,9 @@
 
   const contractMethods = [
     "getClinic",
-    "listSessions",
-    "getSession",
-    "createSession",
-    "updateSession",
-    "deleteSession",
     "listAnimals",
     "createAnimal",
     "updateAnimal",
-    "assignAnimalSession",
     "deleteAnimal",
     "getAnimal",
     "listAnimalVisits",

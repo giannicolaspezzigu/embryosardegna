@@ -505,8 +505,6 @@
     const payload = {
       clinicId: app.data.activeClinicId,
       animalId: activeAnimalId,
-      sessionId: selectedAnimal ? selectedAnimal.sessionId : app.state.context.activeSessionId,
-      sessionName: selectedAnimal ? selectedAnimal.sessionName : (app.state.workspace.activeSession ? app.state.workspace.activeSession.name : ""),
       visitAt,
       visitPurpose: app.dom.refs.visitPurposeInput.value,
       operatorName: app.dom.refs.operatorNameInput.value.trim() || DEFAULT_OPERATOR_NAME,
@@ -1067,9 +1065,6 @@
           await app.data.repository.savePregnancyCheck(app.data.activeClinicId, animalId, pregnancyCheck);
         }
 
-        await app.workspace.loadSessions();
-        app.workspace.renderSessionControls();
-        app.workspace.renderCurrentSession();
         await app.workspace.refreshAnimals(animalId);
         await app.workspace.selectVisit(savedVisit.id);
         this.resetEditor({ preserveContext: true });

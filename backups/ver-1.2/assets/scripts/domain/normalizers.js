@@ -223,35 +223,12 @@
     return output;
   }
 
-  function normalizeSession(input) {
-    const template = domain.models.createSessionTemplate();
-    const output = mergeDeep(template, input);
-
-    output.id = normalizeNonEmptyString(output.id, domain.modelUtils.createId("session"));
-    output.clinicId = normalizeNonEmptyString(output.clinicId, template.clinicId);
-    output.name = normalizeNonEmptyString(output.name, output.id);
-    output.code = normalizeString(output.code, "");
-    output.description = normalizeString(output.description, "");
-    output.status = normalizeEnum(output.status, domain.enums.sessionStatus, template.status);
-    output.startDate = output.startDate ? normalizeDateLike(output.startDate, null) : null;
-    output.endDate = output.endDate ? normalizeDateLike(output.endDate, null) : null;
-    output.notes = normalizeString(output.notes, "");
-    output.createdAt = normalizeDateLike(output.createdAt, domain.modelUtils.nowIso());
-    output.updatedAt = normalizeDateLike(output.updatedAt, domain.modelUtils.nowIso());
-    output.updatedBy = normalizeString(output.updatedBy, "");
-    output.schemaVersion = 2;
-
-    return output;
-  }
-
   function normalizeAnimal(input) {
     const template = domain.models.createAnimalTemplate();
     const output = mergeDeep(template, input);
 
     output.id = normalizeNonEmptyString(output.id, domain.modelUtils.createId("animal"));
     output.clinicId = normalizeNonEmptyString(output.clinicId, template.clinicId);
-    output.sessionId = normalizeNonEmptyString(output.sessionId, domain.modelUtils.UNASSIGNED_SESSION_ID);
-    output.sessionName = normalizeNonEmptyString(output.sessionName, domain.modelUtils.UNASSIGNED_SESSION_NAME);
     output.animalCode = normalizeNonEmptyString(output.animalCode, output.id);
     output.displayName = normalizeNonEmptyString(output.displayName, output.animalCode);
     output.species = normalizeEnum(output.species, domain.enums.species, template.species);
@@ -301,8 +278,6 @@
 
     output.id = normalizeNonEmptyString(output.id, domain.modelUtils.createId("visit"));
     output.clinicId = normalizeNonEmptyString(output.clinicId, template.clinicId);
-    output.sessionId = normalizeNonEmptyString(output.sessionId, domain.modelUtils.UNASSIGNED_SESSION_ID);
-    output.sessionName = normalizeNonEmptyString(output.sessionName, domain.modelUtils.UNASSIGNED_SESSION_NAME);
     output.animalId = normalizeNonEmptyString(output.animalId, "");
     output.visitAt = normalizeDateLike(output.visitAt, domain.modelUtils.nowIso());
     output.visitPurpose = normalizeEnum(output.visitPurpose, domain.enums.visitPurpose, template.visitPurpose);
@@ -406,7 +381,6 @@
 
   domain.normalizers = {
     clinic: normalizeClinic,
-    session: normalizeSession,
     animal: normalizeAnimal,
     visit: normalizeVisit,
     structure: normalizeStructure,

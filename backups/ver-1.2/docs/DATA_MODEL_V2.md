@@ -20,7 +20,6 @@ This document defines the domain model for the Embryo Sardegna prototype. The go
 ```text
 clinics/{clinicId}
 clinics/{clinicId}/members/{userId}
-clinics/{clinicId}/sessions/{sessionId}
 clinics/{clinicId}/animals/{animalId}
 clinics/{clinicId}/animals/{animalId}/visits/{visitId}
 clinics/{clinicId}/animals/{animalId}/visits/{visitId}/attachments/{attachmentId}
@@ -185,13 +184,6 @@ synced
 error
 ```
 
-### Session Status
-
-```text
-active
-archived
-```
-
 ## Core Entities
 
 ## Clinic
@@ -207,35 +199,12 @@ archived
 }
 ```
 
-## Session
-
-`session_unassigned` is reserved for existing data that has not yet been assigned to a real study session.
-
-```json
-{
-  "id": "session_001",
-  "clinicId": "clinic_main",
-  "name": "Studio riceventi aprile",
-  "code": "REC-APR-2026",
-  "description": "",
-  "status": "active",
-  "startDate": "ISO_DATE",
-  "endDate": null,
-  "notes": "",
-  "createdAt": "ISO_DATE",
-  "updatedAt": "ISO_DATE",
-  "updatedBy": "user_01",
-  "schemaVersion": 2
-}
-```
-
 ## Animal
 
 Required fields:
 
 - `id`
 - `clinicId`
-- `sessionId`
 - `animalCode`
 - `species`
 - `status`
@@ -247,8 +216,6 @@ Recommended fields:
 {
   "id": "animal_001",
   "clinicId": "clinic_main",
-  "sessionId": "session_unassigned",
-  "sessionName": "Da assegnare",
   "animalCode": "OV-184",
   "displayName": "OV-184",
   "species": "ovine",
@@ -311,7 +278,6 @@ Required fields:
 
 - `id`
 - `animalId`
-- `sessionId`
 - `visitAt`
 - `ovaries`
 - `summary`
@@ -323,8 +289,6 @@ Recommended fields:
 {
   "id": "visit_0012",
   "clinicId": "clinic_main",
-  "sessionId": "session_unassigned",
-  "sessionName": "Da assegnare",
   "animalId": "animal_001",
   "visitAt": "ISO_DATE",
   "visitPurpose": "follicular_monitoring",
@@ -543,8 +507,6 @@ This keeps the architecture complete while the UI stays focused.
 ```mermaid
 erDiagram
     CLINIC ||--o{ MEMBER : has
-    CLINIC ||--o{ SESSION : owns
-    SESSION ||--o{ ANIMAL : groups
     CLINIC ||--o{ ANIMAL : owns
     ANIMAL ||--o{ VISIT : has
     VISIT ||--o{ ATTACHMENT : includes
@@ -566,22 +528,9 @@ erDiagram
         string displayName
     }
 
-    SESSION {
-        string id
-        string clinicId
-        string name
-        string code
-        string status
-        date startDate
-        date endDate
-        number schemaVersion
-    }
-
     ANIMAL {
         string id
         string clinicId
-        string sessionId
-        string sessionName
         string animalCode
         string species
         string breed
@@ -602,8 +551,6 @@ erDiagram
 
     VISIT {
         string id
-        string sessionId
-        string sessionName
         string animalId
         date visitAt
         string visitPurpose
@@ -753,12 +700,8 @@ Minimum repository contract:
 
 ```text
 listAnimals()
-listSessions()
-createSession(payload)
-updateSession(sessionId, patch)
 createAnimal(payload)
 updateAnimal(animalId, patch)
-assignAnimalSession(clinicId, animalId, sessionId)
 getAnimal(animalId)
 listAnimalVisits(animalId)
 getVisit(animalId, visitId)

@@ -42,10 +42,6 @@
       loss_confirmed: "Perdita confermata",
       completed: "Conclusa",
     },
-    sessionStatusLabels: {
-      active: "Attiva",
-      archived: "Archiviata",
-    },
     uterusLabels: {
       T: ["-", "Ipotonico", "Normale", "Ipertonico"],
       V: ["-", "Scarsa", "Moderata", "Abbondante"],
@@ -56,7 +52,6 @@
   app.state = {
     context: {
       clinicId: null,
-      activeSessionId: null,
       activeAnimalId: null,
       activeVisitId: null,
     },
@@ -74,9 +69,6 @@
     sessionStartedAt: new Date(),
     workspace: {
       clinic: null,
-      sessions: [],
-      activeSession: null,
-      allAnimals: [],
       animals: [],
       activeView: "operational",
       animalSearchTerm: "",

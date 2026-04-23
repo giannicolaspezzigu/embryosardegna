@@ -36,7 +36,6 @@
 
       app.state.context = app.state.context || {};
       app.state.context.clinicId = app.data.activeClinicId;
-      app.state.context.activeSessionId = null;
       app.state.context.activeAnimalId = null;
       app.state.context.activeVisitId = null;
     },

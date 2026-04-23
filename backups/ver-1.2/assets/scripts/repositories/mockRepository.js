@@ -22,28 +22,10 @@
     return visitRecord;
   }
 
-  function getRecordSessionId(record) {
-    return (record && record.sessionId) || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-  }
-
-  function getVisitTimestamp(visit) {
-    const timestamp = visit && visit.visitAt ? new Date(visit.visitAt).getTime() : NaN;
-    return Number.isFinite(timestamp) ? timestamp : null;
-  }
-
-  function createUnassignedSessionRecord(clinicId) {
-    return app.domain.normalizers.session(
-      app.domain.helpers.mergeDeep(app.domain.models.createUnassignedSessionTemplate(), {
-        clinicId,
-      })
-    );
-  }
-
   function createClinicNode(clinicRecord) {
     return {
       record: clinicRecord,
       members: {},
-      sessions: {},
       animals: {},
     };
   }
@@ -197,17 +179,6 @@
     return this.store.clinics[resolvedClinicId];
   };
 
-  MockEmbryoRepository.prototype.ensureUnassignedSession = function (clinicId) {
-    const clinicNode = this.ensureClinicNode(clinicId);
-    const session = createUnassignedSessionRecord(clinicNode.record.id);
-
-    if (!clinicNode.sessions[session.id]) {
-      clinicNode.sessions[session.id] = session;
-    }
-
-    return app.domain.helpers.deepClone(clinicNode.sessions[session.id]);
-  };
-
   MockEmbryoRepository.prototype.ensureAnimalNode = function (clinicId, animalId) {
     const clinicNode = this.ensureClinicNode(clinicId);
     const animalNode = clinicNode.animals[animalId];
@@ -279,107 +250,6 @@
     animalNode.record = app.domain.normalizers.animal(mergedAnimal);
   };
 
-  MockEmbryoRepository.prototype.recomputeSessionDateRange = function (clinicId, sessionId) {
-    const clinicNode = this.ensureClinicNode(clinicId);
-    const resolvedSessionId = sessionId || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-
-    if (resolvedSessionId === app.domain.modelUtils.UNASSIGNED_SESSION_ID) {
-      this.ensureUnassignedSession(clinicId);
-    } else if (!clinicNode.sessions[resolvedSessionId]) {
-      return null;
-    }
-
-    const timestamps = [];
-
-    Object.keys(clinicNode.animals).forEach((animalId) => {
-      const animalNode = clinicNode.animals[animalId];
-
-      Object.keys(animalNode.visits).forEach((visitId) => {
-        const visit = animalNode.visits[visitId].record;
-
-        if (getRecordSessionId(visit) !== resolvedSessionId) {
-          return;
-        }
-
-        const timestamp = getVisitTimestamp(visit);
-
-        if (timestamp !== null) {
-          timestamps.push(timestamp);
-        }
-      });
-    });
-
-    timestamps.sort((left, right) => left - right);
-
-    const existingSession = clinicNode.sessions[resolvedSessionId];
-    const nextStartDate = timestamps.length ? new Date(timestamps[0]).toISOString() : null;
-    const nextEndDate = timestamps.length ? new Date(timestamps[timestamps.length - 1]).toISOString() : null;
-
-    if ((existingSession.startDate || null) === nextStartDate && (existingSession.endDate || null) === nextEndDate) {
-      return app.domain.helpers.deepClone(existingSession);
-    }
-
-    const normalizedSession = app.domain.normalizers.session(
-      app.domain.helpers.mergeDeep(existingSession, {
-        startDate: nextStartDate,
-        endDate: nextEndDate,
-        updatedAt: app.domain.modelUtils.nowIso(),
-      })
-    );
-
-    clinicNode.sessions[resolvedSessionId] = normalizedSession;
-    return app.domain.helpers.deepClone(normalizedSession);
-  };
-
-  MockEmbryoRepository.prototype.recomputeSessionsDateRange = function (clinicId, sessionIds) {
-    const uniqueSessionIds = Array.from(new Set((sessionIds || []).filter(Boolean)));
-
-    uniqueSessionIds.forEach((sessionId) => {
-      this.recomputeSessionDateRange(clinicId, sessionId);
-    });
-  };
-
-  MockEmbryoRepository.prototype.recomputeAllSessionDateRanges = async function (clinicId) {
-    const clinicNode = this.ensureClinicNode(clinicId);
-    this.ensureUnassignedSession(clinicId);
-    this.recomputeSessionsDateRange(clinicId, Object.keys(clinicNode.sessions));
-  };
-
-  MockEmbryoRepository.prototype.updateAnimalVisitsSession = function (clinicId, animalId, session) {
-    const animalNode = this.ensureAnimalNode(clinicId, animalId);
-
-    Object.keys(animalNode.visits).forEach((visitId) => {
-      const visitNode = animalNode.visits[visitId];
-      visitNode.record = app.domain.normalizers.visit(
-        app.domain.helpers.mergeDeep(visitNode.record, {
-          sessionId: session.id,
-          sessionName: session.name,
-          updatedAt: app.domain.modelUtils.nowIso(),
-        })
-      );
-    });
-  };
-
-  MockEmbryoRepository.prototype.updateSessionReferences = function (clinicId, session) {
-    const clinicNode = this.ensureClinicNode(clinicId);
-
-    Object.keys(clinicNode.animals).forEach((animalId) => {
-      const animalNode = clinicNode.animals[animalId];
-
-      if (animalNode.record.sessionId !== session.id) {
-        return;
-      }
-
-      animalNode.record = app.domain.normalizers.animal(
-        app.domain.helpers.mergeDeep(animalNode.record, {
-          sessionName: session.name,
-          updatedAt: app.domain.modelUtils.nowIso(),
-        })
-      );
-      this.updateAnimalVisitsSession(clinicId, animalId, session);
-    });
-  };
-
   MockEmbryoRepository.prototype.seedDefaultData = function () {
     const clinicNode = this.ensureClinicNode(this.defaultClinicId);
     const createdAt = app.domain.modelUtils.nowIso();
@@ -390,7 +260,6 @@
       defaultSpecies: ["ovine", "bovine"],
       createdAt,
     });
-    this.ensureUnassignedSession(this.defaultClinicId);
 
     const ov184Visit01LeftCounts = {
       totalFollicles: 5,
@@ -721,7 +590,6 @@
 
     this.recomputeAnimalRollup(this.defaultClinicId, "animal_ov_184");
     this.recomputeAnimalRollup(this.defaultClinicId, "animal_ov_233");
-    this.recomputeAllSessionDateRanges(this.defaultClinicId);
   };
 
   MockEmbryoRepository.prototype.getClinic = async function (clinicId) {
@@ -747,147 +615,6 @@
     });
   };
 
-  MockEmbryoRepository.prototype.listSessions = async function (clinicId) {
-    const clinicNode = this.ensureClinicNode(clinicId);
-    this.ensureUnassignedSession(clinicId);
-    const sessions = Object.keys(clinicNode.sessions).map((sessionId) => {
-      return app.domain.helpers.deepClone(clinicNode.sessions[sessionId]);
-    });
-
-    return sessions.sort((left, right) => {
-      if (left.id === app.domain.modelUtils.UNASSIGNED_SESSION_ID) {
-        return -1;
-      }
-
-      if (right.id === app.domain.modelUtils.UNASSIGNED_SESSION_ID) {
-        return 1;
-      }
-
-      return left.name.localeCompare(right.name, "it");
-    });
-  };
-
-  MockEmbryoRepository.prototype.getSession = async function (clinicId, sessionId) {
-    const clinicNode = this.ensureClinicNode(clinicId);
-    const resolvedSessionId = sessionId || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-
-    if (resolvedSessionId === app.domain.modelUtils.UNASSIGNED_SESSION_ID) {
-      return this.ensureUnassignedSession(clinicId);
-    }
-
-    if (!clinicNode.sessions[resolvedSessionId]) {
-      throw new Error(`Session not found: ${resolvedSessionId}`);
-    }
-
-    return app.domain.helpers.deepClone(clinicNode.sessions[resolvedSessionId]);
-  };
-
-  MockEmbryoRepository.prototype.createSession = async function (payload) {
-    const normalizedSession = app.domain.normalizers.session(payload);
-    const clinicNode = this.ensureClinicNode(normalizedSession.clinicId);
-
-    this.ensureUnassignedSession(normalizedSession.clinicId);
-    clinicNode.sessions[normalizedSession.id] = normalizedSession;
-
-    return this.getSession(normalizedSession.clinicId, normalizedSession.id);
-  };
-
-  MockEmbryoRepository.prototype.updateSession = async function (sessionId, patch, options) {
-    const settings = options || {};
-    const clinicId = settings.clinicId || this.defaultClinicId;
-    const clinicNode = this.ensureClinicNode(clinicId);
-    const existingSession = await this.getSession(clinicId, sessionId);
-    const normalizedSession = app.domain.normalizers.session(app.domain.helpers.mergeDeep(existingSession, patch || {}));
-
-    clinicNode.sessions[sessionId] = normalizedSession;
-
-    if (existingSession.name !== normalizedSession.name) {
-      this.updateSessionReferences(clinicId, normalizedSession);
-    }
-
-    return this.getSession(clinicId, sessionId);
-  };
-
-  MockEmbryoRepository.prototype.deleteSession = async function (clinicId, sessionId, options) {
-    const settings = options || {};
-    const resolvedSessionId = sessionId || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
-
-    if (resolvedSessionId === app.domain.modelUtils.UNASSIGNED_SESSION_ID) {
-      throw new Error("Cannot delete the unassigned session");
-    }
-
-    await this.getSession(clinicId, resolvedSessionId);
-
-    const clinicNode = this.ensureClinicNode(clinicId);
-    const unassignedSession = this.ensureUnassignedSession(clinicId);
-    const result = {
-      sessionId: resolvedSessionId,
-      deletedAnimals: 0,
-      deletedVisits: 0,
-      reassignedAnimals: 0,
-    };
-    const animalIds = Object.keys(clinicNode.animals);
-    const affectedSessionIds = [];
-
-    for (let index = 0; index < animalIds.length; index += 1) {
-      const animalId = animalIds[index];
-      const animalNode = clinicNode.animals[animalId];
-
-      if (!animalNode) {
-        continue;
-      }
-
-      const animalBelongsToSession = getRecordSessionId(animalNode.record) === resolvedSessionId;
-
-      if (settings.deleteAnimals && animalBelongsToSession) {
-        result.deletedVisits += Object.keys(animalNode.visits).length;
-        await this.deleteAnimal(clinicId, animalId);
-        result.deletedAnimals += 1;
-        continue;
-      }
-
-      let animalChanged = false;
-      const visitIds = Object.keys(animalNode.visits);
-
-      for (let visitIndex = 0; visitIndex < visitIds.length; visitIndex += 1) {
-        const visitId = visitIds[visitIndex];
-        const visitNode = animalNode.visits[visitId];
-
-        if (animalBelongsToSession || getRecordSessionId(visitNode.record) === resolvedSessionId) {
-          affectedSessionIds.push(getRecordSessionId(visitNode.record));
-          delete animalNode.visits[visitId];
-          result.deletedVisits += 1;
-          animalChanged = true;
-        }
-      }
-
-      if (animalBelongsToSession) {
-        animalNode.record = app.domain.normalizers.animal(
-          app.domain.helpers.mergeDeep(animalNode.record, {
-            sessionId: unassignedSession.id,
-            sessionName: unassignedSession.name,
-            updatedAt: app.domain.modelUtils.nowIso(),
-            updatedBy: "demo_user",
-          })
-        );
-        result.reassignedAnimals += 1;
-        animalChanged = true;
-      }
-
-      if (animalChanged) {
-        this.recomputeAnimalRollup(clinicId, animalId);
-      }
-    }
-
-    this.recomputeSessionsDateRange(
-      clinicId,
-      affectedSessionIds.filter((affectedSessionId) => affectedSessionId !== resolvedSessionId)
-    );
-    delete clinicNode.sessions[resolvedSessionId];
-    this.ensureUnassignedSession(clinicId);
-    return result;
-  };
-
   MockEmbryoRepository.prototype.createAnimal = async function (payload) {
     const normalizedAnimal = app.domain.normalizers.animal(payload);
     this.upsertAnimalRecord(normalizedAnimal.clinicId, normalizedAnimal);
@@ -898,40 +625,10 @@
     const settings = options || {};
     const clinicId = settings.clinicId || this.defaultClinicId;
     const animalNode = this.ensureAnimalNode(clinicId, animalId);
-    const existingSessionId = animalNode.record.sessionId;
-    const existingSessionName = animalNode.record.sessionName;
     const mergedRecord = app.domain.helpers.mergeDeep(animalNode.record, patch || {});
 
-    if (patch && patch.sessionId && !patch.sessionName) {
-      const session = await this.getSession(clinicId, patch.sessionId);
-      mergedRecord.sessionName = session.name;
-    }
-
     animalNode.record = app.domain.normalizers.animal(mergedRecord);
-
-    if (existingSessionId !== animalNode.record.sessionId || existingSessionName !== animalNode.record.sessionName) {
-      this.updateAnimalVisitsSession(clinicId, animalId, {
-        id: animalNode.record.sessionId,
-        name: animalNode.record.sessionName,
-      });
-      this.recomputeSessionsDateRange(clinicId, [existingSessionId, animalNode.record.sessionId]);
-    }
-
     return this.getAnimal(clinicId, animalId);
-  };
-
-  MockEmbryoRepository.prototype.assignAnimalSession = async function (clinicId, animalId, sessionId) {
-    const session = await this.getSession(clinicId, sessionId);
-
-    return this.updateAnimal(
-      animalId,
-      {
-        sessionId: session.id,
-        sessionName: session.name,
-        updatedBy: "demo_user",
-      },
-      { clinicId }
-    );
   };
 
   MockEmbryoRepository.prototype.getAnimal = async function (clinicId, animalId) {
@@ -941,20 +638,12 @@
 
   MockEmbryoRepository.prototype.deleteAnimal = async function (clinicId, animalId) {
     const clinicNode = this.ensureClinicNode(clinicId);
-    const animalNode = clinicNode.animals[animalId];
 
-    if (!animalNode) {
+    if (!clinicNode.animals[animalId]) {
       throw new Error(`Animal not found: ${animalId}`);
     }
 
-    const affectedSessionIds = [getRecordSessionId(animalNode.record)];
-
-    Object.keys(animalNode.visits).forEach((visitId) => {
-      affectedSessionIds.push(getRecordSessionId(animalNode.visits[visitId].record));
-    });
-
     delete clinicNode.animals[animalId];
-    this.recomputeSessionsDateRange(clinicId, affectedSessionIds);
     return true;
   };
 
@@ -970,18 +659,14 @@
   };
 
   MockEmbryoRepository.prototype.saveVisit = async function (clinicId, animalId, visitPayload) {
-    const animalRecord = await this.getAnimal(clinicId, animalId);
     const normalizedVisit = app.domain.normalizers.visit(
       app.domain.helpers.mergeDeep(visitPayload || {}, {
         clinicId,
-        sessionId: (visitPayload && visitPayload.sessionId) || animalRecord.sessionId,
-        sessionName: (visitPayload && visitPayload.sessionName) || animalRecord.sessionName,
         animalId,
       })
     );
     const animalNode = this.ensureAnimalNode(clinicId, animalId);
     const existingNode = animalNode.visits[normalizedVisit.id];
-    const previousSessionId = existingNode ? getRecordSessionId(existingNode.record) : null;
 
     if (existingNode) {
       const attachments = existingNode.attachments;
@@ -995,7 +680,6 @@
     }
 
     this.recomputeAnimalRollup(clinicId, animalId);
-    this.recomputeSessionsDateRange(clinicId, [previousSessionId, normalizedVisit.sessionId]);
     return this.getVisit(clinicId, animalId, normalizedVisit.id);
   };
 
@@ -1006,11 +690,8 @@
       throw new Error(`Visit not found: ${visitId}`);
     }
 
-    const deletedSessionId = getRecordSessionId(animalNode.visits[visitId].record);
-
     delete animalNode.visits[visitId];
     this.recomputeAnimalRollup(clinicId, animalId);
-    this.recomputeSessionDateRange(clinicId, deletedSessionId);
     return true;
   };
 
