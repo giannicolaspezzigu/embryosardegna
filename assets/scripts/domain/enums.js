@@ -3,7 +3,7 @@
   const domain = (app.domain = app.domain || {});
 
   domain.enums = {
-    species: ["ovine", "bovine"],
+    species: ["ovine", "bovine", "caprine"],
     sex: ["female", "male", "unknown"],
     animalStatus: ["active", "inactive", "archived", "sold", "deceased"],
     reproductiveRole: ["recipient", "donor", "breeding_female", "breeding_male", "monitoring_only"],

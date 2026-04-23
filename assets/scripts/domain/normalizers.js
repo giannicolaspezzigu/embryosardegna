@@ -239,6 +239,8 @@
     output.createdAt = normalizeDateLike(output.createdAt, domain.modelUtils.nowIso());
     output.updatedAt = normalizeDateLike(output.updatedAt, domain.modelUtils.nowIso());
     output.updatedBy = normalizeString(output.updatedBy, "");
+    output.deviceId = normalizeString(output.deviceId, "");
+    output.syncStatus = normalizeEnum(output.syncStatus, domain.enums.syncStatus, template.syncStatus);
     output.schemaVersion = 2;
 
     return output;
@@ -289,6 +291,8 @@
     output.createdAt = normalizeDateLike(output.createdAt, domain.modelUtils.nowIso());
     output.updatedAt = normalizeDateLike(output.updatedAt, domain.modelUtils.nowIso());
     output.updatedBy = normalizeString(output.updatedBy, "");
+    output.deviceId = normalizeString(output.deviceId, "");
+    output.syncStatus = normalizeEnum(output.syncStatus, domain.enums.syncStatus, template.syncStatus);
     output.deletedAt = output.deletedAt ? normalizeDateLike(output.deletedAt, null) : null;
     output.schemaVersion = 2;
 
@@ -308,6 +312,7 @@
     output.visitPurpose = normalizeEnum(output.visitPurpose, domain.enums.visitPurpose, template.visitPurpose);
     output.operatorId = normalizeString(output.operatorId, "");
     output.operatorName = normalizeString(output.operatorName, "");
+    output.bodyConditionScore = normalizeNullableNumber(output.bodyConditionScore);
     output.deviceId = normalizeString(output.deviceId, "");
     output.species = normalizeEnum(output.species, domain.enums.species, template.species);
     output.notes = normalizeString(output.notes, "");
@@ -347,6 +352,12 @@
     output.unit = normalizeString(output.unit, "");
     output.route = normalizeString(output.route, "");
     output.notes = normalizeString(output.notes, "");
+    output.createdAt = normalizeDateLike(output.createdAt, domain.modelUtils.nowIso());
+    output.updatedAt = normalizeDateLike(output.updatedAt, output.createdAt);
+    output.updatedBy = normalizeString(output.updatedBy, "");
+    output.deviceId = normalizeString(output.deviceId, "");
+    output.syncStatus = normalizeEnum(output.syncStatus, domain.enums.syncStatus, template.syncStatus);
+    output.schemaVersion = 2;
 
     return output;
   }
@@ -356,6 +367,8 @@
     const output = mergeDeep(template, input);
 
     output.id = normalizeNonEmptyString(output.id, domain.modelUtils.createId("preg"));
+    output.clinicId = normalizeNonEmptyString(output.clinicId, template.clinicId);
+    output.animalId = normalizeString(output.animalId, "");
     output.checkAt = normalizeDateLike(output.checkAt, domain.modelUtils.nowIso());
     output.method = normalizeString(output.method, "ultrasound");
     output.daysFromBreeding = normalizeNullableNumber(output.daysFromBreeding);
@@ -367,6 +380,11 @@
     output.crlMm = normalizeNullableNumber(output.crlMm);
     output.estimatedGestationalAgeDays = normalizeNullableNumber(output.estimatedGestationalAgeDays);
     output.notes = normalizeString(output.notes, "");
+    output.createdAt = normalizeDateLike(output.createdAt, domain.modelUtils.nowIso());
+    output.updatedAt = normalizeDateLike(output.updatedAt, output.createdAt);
+    output.updatedBy = normalizeString(output.updatedBy, "");
+    output.deviceId = normalizeString(output.deviceId, "");
+    output.syncStatus = normalizeEnum(output.syncStatus, domain.enums.syncStatus, template.syncStatus);
     output.schemaVersion = 2;
 
     return output;
@@ -383,6 +401,12 @@
     output.capturedAt = normalizeDateLike(output.capturedAt, domain.modelUtils.nowIso());
     output.label = normalizeString(output.label, "");
     output.notes = normalizeString(output.notes, "");
+    output.createdAt = normalizeDateLike(output.createdAt, domain.modelUtils.nowIso());
+    output.updatedAt = normalizeDateLike(output.updatedAt, output.createdAt);
+    output.updatedBy = normalizeString(output.updatedBy, "");
+    output.deviceId = normalizeString(output.deviceId, "");
+    output.syncStatus = normalizeEnum(output.syncStatus, domain.enums.syncStatus, template.syncStatus);
+    output.schemaVersion = 2;
 
     return output;
   }

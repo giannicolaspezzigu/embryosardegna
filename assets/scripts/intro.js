@@ -15,7 +15,7 @@ const startCinema = () => {
     speed: 0.00018 + Math.random() * 0.00045,
     size: 1.4 + Math.random() * 2.8,
     color: palette[index % palette.length],
-    phase: Math.random() * Math.PI * 2
+    phase: Math.random() * Math.PI * 2,
   }));
   let width = 0;
   let height = 0;
@@ -87,28 +87,75 @@ const startCinema = () => {
   requestAnimationFrame(draw);
 };
 
+function setLoginState(message) {
+  if (loginState) {
+    loginState.textContent = message;
+  }
+}
+
+async function redirectIfAlreadyAuthenticated() {
+  if (!window.EmbryoApp || !window.EmbryoApp.auth || !window.EmbryoApp.auth.isEnabled()) {
+    return;
+  }
+
+  setLoginState("Verifica sessione attiva...");
+
+  try {
+    const session = await window.EmbryoApp.auth.redirectIfAuthenticated();
+
+    if (session) {
+      setLoginState("Sessione valida, accesso in corso...");
+      return;
+    }
+
+    setLoginState("Inserisci le credenziali.");
+  } catch (error) {
+    console.error(error);
+    setLoginState(window.EmbryoApp.auth.getFriendlyErrorMessage(error));
+  }
+}
+
 if (introLoginForm && loginState) {
-  introLoginForm.addEventListener("submit", (event) => {
+  introLoginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const submitButton = introLoginForm.querySelector(".login-button");
     const buttonCopy = introLoginForm.querySelector(".button-copy");
+    const identifierInput = introLoginForm.querySelector('input[name="identifier"]');
+    const passwordInput = introLoginForm.querySelector('input[name="password"]');
+
+    if (!window.EmbryoApp || !window.EmbryoApp.auth || !window.EmbryoApp.auth.isEnabled()) {
+      setLoginState("Autenticazione non configurata.");
+      return;
+    }
 
     introLoginForm.classList.remove("is-authorized");
     submitButton.classList.add("is-loading");
-    buttonCopy.textContent = "Checking";
-    loginState.textContent = "Checking demo credentials";
+    submitButton.disabled = true;
+    buttonCopy.textContent = "Accesso...";
+    setLoginState("Verifica credenziali e profilo clinica...");
 
-    window.setTimeout(() => {
-      submitButton.classList.remove("is-loading");
+    try {
+      await window.EmbryoApp.auth.signInWithPassword(identifierInput.value, passwordInput.value);
       introLoginForm.classList.add("is-authorized");
-      buttonCopy.textContent = "Enter demo";
-      loginState.textContent = "Demo access authorized";
-    }, 850);
+      buttonCopy.textContent = "Accesso consentito";
+      setLoginState("Accesso autorizzato, apertura applicazione...");
+      window.setTimeout(() => {
+        window.location.replace("./embryosardegna.html");
+      }, 320);
+    } catch (error) {
+      console.error(error);
+      buttonCopy.textContent = "Accedi";
+      setLoginState(window.EmbryoApp.auth.getFriendlyErrorMessage(error));
+    } finally {
+      submitButton.classList.remove("is-loading");
+      submitButton.disabled = false;
+    }
   });
 }
 
 startCinema();
+redirectIfAlreadyAuthenticated();
 
 window.setTimeout(() => {
   document.body.classList.add("is-settled");

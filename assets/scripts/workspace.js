@@ -79,14 +79,7 @@
       return "";
     }
 
-    const raw = String(value);
-    const match = raw.match(/^(\d{4}-\d{2}-\d{2})/);
-
-    if (match) {
-      return match[1];
-    }
-
-    const date = new Date(raw);
+    const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
@@ -99,8 +92,7 @@
       return null;
     }
 
-    const date = new Date(`${value}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? String(value) : null;
   }
 
   function formatStructureType(type) {
@@ -220,6 +212,9 @@
       `<div class="detail-kv-row"><span>Programma</span><strong>${escapeHtml(formatProgramType(visit.protocolContext.programType))}</strong></div>` +
       `<div class="detail-kv-row"><span>Gravidanza</span><strong>${escapeHtml(formatPregnancyStatus(visit.summary.pregnancyStatus))}</strong></div>` +
       `<div class="detail-kv-row"><span>Operatore</span><strong>${escapeHtml(visit.operatorName || "-")}</strong></div>` +
+      `<div class="detail-kv-row"><span>BCS</span><strong>${escapeHtml(
+        visit.bodyConditionScore !== null && visit.bodyConditionScore !== undefined ? visit.bodyConditionScore : "-"
+      )}</strong></div>` +
       "</div>" +
       "</div>" +
       '<div class="detail-card">' +
@@ -304,18 +299,45 @@
     async init() {
       this.bindEvents();
       this.renderRepositoryMode();
+
+      if (app.ui && typeof app.ui.updateBootLoading === "function") {
+        app.ui.updateBootLoading(74, "Lettura profilo clinica...");
+      }
+
       await this.loadClinic();
+
+      if (app.ui && typeof app.ui.updateBootLoading === "function") {
+        app.ui.updateBootLoading(82, "Caricamento sessioni disponibili...");
+      }
+
       await this.loadSessions({ recomputeDateRanges: true });
       this.renderSessionControls();
       this.renderCurrentSession();
+      this.renderVisitHistoryPanelState();
 
-      const savedSessionId = window.localStorage ? window.localStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) : null;
+      const savedSessionId = app.platform.storage.getItem(ACTIVE_SESSION_STORAGE_KEY);
       const canRestoreSession = savedSessionId && app.state.workspace.sessions.some((session) => session.id === savedSessionId);
 
       if (canRestoreSession) {
+        if (app.ui && typeof app.ui.updateBootLoading === "function") {
+          app.ui.updateBootLoading(90, "Ripristino sessione attiva...");
+        }
+
         await this.activateSession(savedSessionId, { silent: true, keepModalClosed: true });
       } else {
         this.clearSelectedAnimal();
+      }
+
+      if (app.data.repository && typeof app.data.repository.subscribeDataChange === "function") {
+        app.data.repository.subscribeDataChange(() => {
+          this.handleRepositoryDataChanged().catch((error) => {
+            console.error(error);
+          });
+        });
+      }
+
+      if (app.ui && typeof app.ui.updateBootLoading === "function") {
+        app.ui.updateBootLoading(96, "Workspace pronto.");
       }
 
       this.openSessionModal();
@@ -390,6 +412,10 @@
         }
 
         this.selectVisit(item.dataset.visitId);
+      });
+
+      refs.toggleVisitHistoryBtn.addEventListener("click", () => {
+        this.toggleVisitHistory();
       });
 
       refs.visitHistoryList.addEventListener("click", (event) => {
@@ -495,9 +521,7 @@
       app.state.context.activeSessionId = session.id;
       app.state.workspace.activeSession = session;
 
-      if (window.localStorage) {
-        window.localStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, session.id);
-      }
+      app.platform.storage.setItem(ACTIVE_SESSION_STORAGE_KEY, session.id);
 
       this.renderCurrentSession();
       this.renderSessionControls();
@@ -605,6 +629,29 @@
       }
     },
 
+    async handleRepositoryDataChanged() {
+      if (!app.state.context.activeSessionId) {
+        return;
+      }
+
+      await this.loadClinic();
+      await this.loadSessions();
+
+      const currentSessionId = app.state.context.activeSessionId;
+      const resolvedSession = this.getSessionById(currentSessionId);
+
+      if (resolvedSession) {
+        app.state.workspace.activeSession = resolvedSession;
+      } else {
+        app.state.context.activeSessionId = app.domain.modelUtils.UNASSIGNED_SESSION_ID;
+        app.state.workspace.activeSession = this.getSessionById(app.domain.modelUtils.UNASSIGNED_SESSION_ID);
+      }
+
+      this.renderSessionControls();
+      this.renderCurrentSession();
+      await this.refreshAnimals(app.state.context.activeAnimalId);
+    },
+
     getFilteredAnimals() {
       const term = app.state.workspace.animalSearchTerm;
 
@@ -700,6 +747,7 @@
         animal.breed || "Razza N/D",
         animal.farmName || "Allevamento N/D",
         getRecordSessionName(animal),
+        animal.birthDate ? `Nato ${app.utils.formatLongDate(animal.birthDate)}` : "Nascita N/D",
       ];
 
       refs.selectedAnimalTitle.textContent = animal.displayName || animal.animalCode;
@@ -787,6 +835,24 @@
         .join("");
     },
 
+    renderVisitHistoryPanelState() {
+      const refs = app.dom.refs;
+      const expanded = Boolean(app.state.workspace.visitHistoryExpanded);
+
+      refs.visitHistoryBody.hidden = !expanded;
+      refs.toggleVisitHistoryBtn.textContent = expanded ? "Chiudi storico" : "Apri storico";
+      refs.toggleVisitHistoryBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+    },
+
+    setVisitHistoryExpanded(expanded) {
+      app.state.workspace.visitHistoryExpanded = Boolean(expanded);
+      this.renderVisitHistoryPanelState();
+    },
+
+    toggleVisitHistory() {
+      this.setVisitHistoryExpanded(!app.state.workspace.visitHistoryExpanded);
+    },
+
     async selectVisit(visitId) {
       const animalId = app.state.context.activeAnimalId;
 
@@ -860,6 +926,7 @@
       refs.animalFarmInput.value = "";
       refs.animalRoleInput.value = "recipient";
       refs.animalParityInput.value = "";
+      refs.animalBirthDateInput.value = "";
       refs.animalModal.classList.add("open");
       refs.animalCodeInput.focus();
     },
@@ -896,6 +963,7 @@
         farmName: refs.animalFarmInput.value.trim(),
         reproductiveRole: refs.animalRoleInput.value,
         parity: refs.animalParityInput.value ? Number(refs.animalParityInput.value) : null,
+        birthDate: dateInputValueToIso(refs.animalBirthDateInput.value),
         status: "active",
         updatedBy: "demo_user",
       };

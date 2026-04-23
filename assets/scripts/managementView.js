@@ -53,19 +53,20 @@
       return "";
     }
 
-    const raw = String(value);
-    const match = raw.match(/^(\d{4}-\d{2}-\d{2})/);
-
-    if (match) {
-      return match[1];
-    }
-
-    const date = new Date(raw);
+    const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
 
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  function dateInputValueToIso(value) {
+    if (!value) {
+      return null;
+    }
+
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? String(value) : null;
   }
 
   function populateSessionForm(session) {
@@ -105,6 +106,7 @@
     refs.managementAnimalSessionInput.disabled = !animal;
     refs.managementAnimalRoleInput.value = animal ? animal.reproductiveRole || "recipient" : "recipient";
     refs.managementAnimalParityInput.value = animal && animal.parity !== null && animal.parity !== undefined ? animal.parity : "";
+    refs.managementAnimalBirthDateInput.value = animal ? isoToDateInputValue(animal.birthDate) : "";
     refs.managementAnimalNotesInput.value = animal ? animal.notes || "" : "";
     refs.saveAnimalChangesBtn.disabled = !animal;
     refs.deleteAnimalBtn.disabled = !animal;
@@ -292,6 +294,10 @@
 
       if (app.exporter && typeof app.exporter.refreshFilters === "function") {
         app.exporter.refreshFilters();
+      }
+
+      if (app.backup && typeof app.backup.refreshSummary === "function") {
+        app.backup.refreshSummary();
       }
     },
 
@@ -507,6 +513,7 @@
         sessionName: selectedSession ? selectedSession.name : app.domain.modelUtils.UNASSIGNED_SESSION_NAME,
         reproductiveRole: app.dom.refs.managementAnimalRoleInput.value,
         parity: app.dom.refs.managementAnimalParityInput.value ? Number(app.dom.refs.managementAnimalParityInput.value) : null,
+        birthDate: dateInputValueToIso(app.dom.refs.managementAnimalBirthDateInput.value),
         notes: app.dom.refs.managementAnimalNotesInput.value.trim(),
         updatedBy: "demo_user",
       };

@@ -7,6 +7,40 @@
 <link rel="stylesheet" href="assets/styles/app.css">
 </head>
 <body data-theme="dark">
+<script>
+  (function () {
+    try {
+      var key = "embryo_boot_loading_v1";
+      var raw = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+      if (!raw) {
+        return;
+      }
+
+      var state = JSON.parse(raw);
+      var startedAt = Date.parse(state && state.startedAt ? state.startedAt : "");
+      var isFresh = Number.isNaN(startedAt) ? true : Date.now() - startedAt < 180000;
+
+      if (state && state.active && isFresh) {
+        document.body.classList.add("boot-loading-active");
+      } else if (window.sessionStorage) {
+        window.sessionStorage.removeItem(key);
+      }
+    } catch (error) {}
+  })();
+</script>
+
+<div class="boot-loading-overlay" id="bootLoadingOverlay" hidden aria-live="polite" aria-busy="true">
+  <div class="boot-loading-card">
+    <div class="boot-loading-spinner" aria-hidden="true"></div>
+    <div class="boot-loading-kicker">Caricamento applicazione</div>
+    <div class="boot-loading-title" id="bootLoadingTitle">Cambio clinica in corso</div>
+    <div class="boot-loading-message" id="bootLoadingMessage">Preparazione workspace...</div>
+    <div class="boot-loading-progress">
+      <div class="boot-loading-progress-bar" id="bootLoadingProgressBar"></div>
+    </div>
+    <div class="boot-loading-percent" id="bootLoadingPercent">0%</div>
+  </div>
+</div>
 
 <header>
   <div class="header-top">
@@ -23,14 +57,29 @@
       <div class="app-subtitle">Conference-ready veterinary console for ovarian dynamics</div>
     </div>
     <div class="header-controls">
-      <div class="theme-toggle" aria-label="Tema applicazione">
-        <button class="theme-btn active" id="themeDarkBtn" data-theme-choice="dark" type="button">Dark Lab</button>
-        <button class="theme-btn" id="themeLightBtn" data-theme-choice="light" type="button">Bright Lab</button>
+      <div class="header-toolbar">
+        <div class="theme-toggle" aria-label="Tema applicazione">
+          <button class="theme-btn active" id="themeDarkBtn" data-theme-choice="dark" type="button">Dark Lab</button>
+          <button class="theme-btn" id="themeLightBtn" data-theme-choice="light" type="button">Bright Lab</button>
+        </div>
+        <div class="header-status-sync">
+          <button class="sync-pill" id="syncStatusBtn" type="button" title="Stato sincronizzazione">
+            <span class="sync-dot" id="syncStatusDot"></span>
+            <span id="syncStatusText">Sync --</span>
+          </button>
+        </div>
+        <div class="clinic-switcher" id="clinicSwitcher" hidden>
+          <span class="clinic-switcher-label">Clinica</span>
+          <select class="clinic-switcher-select" id="clinicSelect" aria-label="Clinica attiva"></select>
+        </div>
+        <button class="header-logout-btn" id="logoutBtn" type="button">Esci</button>
       </div>
       <div class="header-status">
-        <button class="session-chip" id="openSessionModalBtn" type="button">Sessione: --</button>
-        <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
-        <div class="date-badge" id="dateBadge"></div>
+        <div class="header-status-main">
+          <button class="session-chip" id="openSessionModalBtn" type="button">Sessione: --</button>
+          <input type="text" id="sheepId" placeholder="Animale selezionato" readonly>
+          <div class="date-badge" id="dateBadge"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -87,8 +136,11 @@
       <div class="card workspace-card panel-visit-review">
         <div class="card-header">
           <div class="card-title">Storico Completo</div>
+          <button class="clr-btn card-header-toggle-btn" id="toggleVisitHistoryBtn" type="button" aria-expanded="false" aria-controls="visitHistoryBody">
+            Apri storico
+          </button>
         </div>
-        <div class="card-body">
+        <div class="card-body collapsible-card-body" id="visitHistoryBody" hidden>
           <div class="visit-history" id="visitHistoryList"></div>
         </div>
       </div>
@@ -161,6 +213,25 @@
             <label class="form-field">
               <span>Operatore</span>
               <input type="text" id="operatorNameInput" placeholder="es: Antonio Spezzigu">
+            </label>
+            <label class="form-field">
+              <span>Body condition score</span>
+              <select id="visitBodyConditionScoreInput">
+                <option value="">Non definito</option>
+                <option value="2">2,00</option>
+                <option value="2.25">2,25</option>
+                <option value="2.5">2,50</option>
+                <option value="2.75">2,75</option>
+                <option value="3">3,00</option>
+                <option value="3.25">3,25</option>
+                <option value="3.5">3,50</option>
+                <option value="3.75">3,75</option>
+                <option value="4">4,00</option>
+                <option value="4.25">4,25</option>
+                <option value="4.5">4,50</option>
+                <option value="4.75">4,75</option>
+                <option value="5">5,00</option>
+              </select>
             </label>
             <label class="form-field">
               <span>Stato gravidanza</span>
@@ -590,6 +661,7 @@
                 <select id="managementAnimalSpeciesInput">
                   <option value="ovine">Ovino</option>
                   <option value="bovine">Bovino</option>
+                  <option value="caprine">Caprino</option>
                 </select>
               </label>
               <label class="form-field">
@@ -616,6 +688,10 @@
               <label class="form-field">
                 <span>Parità</span>
                 <input type="number" id="managementAnimalParityInput" min="0" step="1" placeholder="Parità">
+              </label>
+              <label class="form-field">
+                <span>Data di nascita</span>
+                <input type="date" id="managementAnimalBirthDateInput">
               </label>
               <label class="form-field management-wide-field">
                 <span>Note animale</span>
@@ -674,6 +750,25 @@
             <div class="management-actions">
               <button class="export-btn" id="exportBtn" type="button">Esporta Excel</button>
             </div>
+          </div>
+        </div>
+
+        <div class="card workspace-card management-export-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Backup JSON</div>
+              <div class="workspace-subheading" id="backupSummaryBadge">Backup completo clinica corrente</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="entity-meta backup-note">
+              Export completo di clinica corrente per backup, migrazione e ripristino controllato. L'import aggiorna i record con lo stesso ID e non cancella automaticamente i dati gia presenti.
+            </div>
+            <div class="management-actions">
+              <button class="export-btn" id="exportJsonBackupBtn" type="button">Esporta JSON</button>
+              <button class="secondary-btn" id="importJsonBackupBtn" type="button">Importa JSON</button>
+            </div>
+            <input id="importJsonBackupFileInput" type="file" accept=".json,application/json" hidden>
           </div>
         </div>
       </section>
@@ -788,6 +883,7 @@
         <select id="animalSpeciesInput">
           <option value="ovine">Ovino</option>
           <option value="bovine">Bovino</option>
+          <option value="caprine">Caprino</option>
         </select>
       </label>
       <label class="form-field">
@@ -810,6 +906,10 @@
       <label class="form-field">
         <span>Parit&#xE0;</span>
         <input type="number" id="animalParityInput" min="0" step="1" placeholder="es: 2">
+      </label>
+      <label class="form-field">
+        <span>Data di nascita</span>
+        <input type="date" id="animalBirthDateInput">
       </label>
     </div>
     <div class="modal-btns">
@@ -851,15 +951,20 @@
 
 <script src="assets/scripts/state.js"></script>
 <script src="assets/scripts/utils.js"></script>
+<script src="assets/scripts/platform.js"></script>
 <script src="assets/scripts/domain/enums.js"></script>
 <script src="assets/scripts/domain/models.js"></script>
 <script src="assets/scripts/domain/normalizers.js"></script>
 <script src="assets/scripts/repositories/runtimeConfig.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore-compat.js"></script>
+<script src="assets/scripts/auth.js"></script>
 <script src="assets/scripts/repositories/contract.js"></script>
 <script src="assets/scripts/repositories/mockRepository.js"></script>
 <script src="assets/scripts/repositories/firestoreRepository.js"></script>
+<script src="assets/scripts/repositories/localPersistence.js"></script>
+<script src="assets/scripts/repositories/syncedRepository.js"></script>
 <script src="assets/scripts/repositories/bootstrap.js"></script>
 <script src="assets/scripts/dom.js"></script>
 <script src="assets/scripts/theme.js"></script>
@@ -869,6 +974,7 @@
 <script src="assets/scripts/voice.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="assets/scripts/export.js"></script>
+<script src="assets/scripts/backup.js"></script>
 <script src="assets/scripts/navigation.js"></script>
 <script src="assets/scripts/attachmentViewer.js"></script>
 <script src="assets/scripts/workspace.js"></script>

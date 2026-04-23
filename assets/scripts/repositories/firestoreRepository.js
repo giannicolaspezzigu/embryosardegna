@@ -12,6 +12,20 @@
     return app.domain.helpers.deepClone(value);
   }
 
+  function cloneTombstone(value) {
+    return JSON.parse(JSON.stringify(value || null));
+  }
+
+  function createClinicSyncMarker(deviceId) {
+    const updatedAt = app.domain.modelUtils.nowIso();
+
+    return {
+      syncRevision: app.domain.modelUtils.createId("syncrev"),
+      syncUpdatedAt: updatedAt,
+      syncDeviceId: deviceId || "",
+    };
+  }
+
   function getRecordSessionId(record) {
     return (record && record.sessionId) || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
   }
@@ -19,6 +33,18 @@
   function getVisitTimestamp(visit) {
     const timestamp = visit && visit.visitAt ? new Date(visit.visitAt).getTime() : NaN;
     return Number.isFinite(timestamp) ? timestamp : null;
+  }
+
+  function getLatestBodyConditionScore(visits, fallbackValue) {
+    for (let index = 0; index < (visits || []).length; index += 1) {
+      const visit = visits[index];
+
+      if (visit && visit.bodyConditionScore !== null && visit.bodyConditionScore !== undefined) {
+        return visit.bodyConditionScore;
+      }
+    }
+
+    return fallbackValue === undefined ? null : fallbackValue;
   }
 
   function createUnassignedSessionRecord(clinicId) {
@@ -34,6 +60,10 @@
   }
 
   function getFirebaseGlobal() {
+    if (app.platform && app.platform.providers && typeof app.platform.providers.getFirebase === "function") {
+      return app.platform.providers.getFirebase();
+    }
+
     return window.firebase || null;
   }
 
@@ -124,6 +154,50 @@
     return this.animalRef(clinicId, animalId).collection("pregnancyChecks");
   };
 
+  FirestoreEmbryoRepository.prototype.syncTombstonesCollection = function (clinicId) {
+    return this.clinicRef(clinicId).collection("syncTombstones");
+  };
+
+  FirestoreEmbryoRepository.prototype.touchClinicSyncMarker = async function (clinicId, payload) {
+    const resolvedClinicId = clinicId || this.defaultClinicId;
+    const marker = app.domain.helpers.mergeDeep(createClinicSyncMarker(payload && payload.deviceId), payload || {});
+
+    await this.ready();
+    await this.clinicRef(resolvedClinicId).set(marker, { merge: true });
+    return clone(marker);
+  };
+
+  FirestoreEmbryoRepository.prototype.subscribeClinicSyncMarker = function (clinicId, listener) {
+    const resolvedClinicId = clinicId || this.defaultClinicId;
+
+    if (typeof listener !== "function") {
+      return function () {};
+    }
+
+    let isInitialDelivery = true;
+
+    return this.clinicRef(resolvedClinicId).onSnapshot(
+      (snapshot) => {
+        const data = snapshot && snapshot.exists ? snapshot.data() : {};
+
+        listener({
+          clinicId: resolvedClinicId,
+          revision: (data && data.syncRevision) || null,
+          updatedAt: (data && data.syncUpdatedAt) || null,
+          deviceId: (data && data.syncDeviceId) || "",
+          initial: isInitialDelivery,
+        });
+
+        if (isInitialDelivery) {
+          isInitialDelivery = false;
+        }
+      },
+      (error) => {
+        console.warn("Clinic sync marker subscription failed.", error);
+      }
+    );
+  };
+
   FirestoreEmbryoRepository.prototype.buildVisitWithRelations = async function (clinicId, animalId, visitDoc) {
     const visitRecord = app.domain.normalizers.visit(visitDoc.data());
     const [attachmentsSnap, eventsSnap] = await Promise.all([
@@ -209,6 +283,7 @@
       lastVisitAt: latestVisit ? latestVisit.visitAt : null,
       lastVisitId: latestVisit ? latestVisit.id : null,
       lastVisitSummary: latestVisit ? app.domain.normalizers.animalSnapshotFromVisit(latestVisit) : null,
+      bodyConditionScore: getLatestBodyConditionScore(visits, visits.length ? null : animalRecord.bodyConditionScore),
       updatedAt: app.domain.modelUtils.nowIso(),
     });
 
@@ -479,6 +554,19 @@
     return result;
   };
 
+  FirestoreEmbryoRepository.prototype.deleteSessionRecord = async function (clinicId, sessionId) {
+    const resolvedClinicId = clinicId || this.defaultClinicId;
+    const resolvedSessionId = sessionId || app.domain.modelUtils.UNASSIGNED_SESSION_ID;
+
+    if (resolvedSessionId === app.domain.modelUtils.UNASSIGNED_SESSION_ID) {
+      throw new Error("Cannot delete the unassigned session");
+    }
+
+    await this.ready();
+    await this.sessionRef(resolvedClinicId, resolvedSessionId).delete();
+    return true;
+  };
+
   FirestoreEmbryoRepository.prototype.listAnimals = async function (clinicId) {
     await this.ready();
 
@@ -704,10 +792,32 @@
     );
   };
 
+  FirestoreEmbryoRepository.prototype.listSyncTombstones = async function (clinicId) {
+    const resolvedClinicId = clinicId || this.defaultClinicId;
+
+    await this.ready();
+
+    const snapshot = await this.syncTombstonesCollection(resolvedClinicId).get();
+    return snapshot.docs.map((doc) => cloneTombstone(doc.data()));
+  };
+
+  FirestoreEmbryoRepository.prototype.upsertSyncTombstone = async function (clinicId, tombstone) {
+    const resolvedClinicId = clinicId || this.defaultClinicId;
+    const normalizedTombstone = cloneTombstone(tombstone);
+
+    if (!normalizedTombstone || !normalizedTombstone.key) {
+      throw new Error("Invalid sync tombstone payload");
+    }
+
+    await this.ready();
+    await this.syncTombstonesCollection(resolvedClinicId).doc(normalizedTombstone.key).set(normalizedTombstone);
+    return normalizedTombstone;
+  };
+
   repositories.FirestoreEmbryoRepository = FirestoreEmbryoRepository;
 
   repositories.isRuntimeFirestoreConfigured = function (runtimeConfig) {
-    const config = runtimeConfig || window.EmbryoRuntimeConfig || {};
+    const config = runtimeConfig || (app.platform && typeof app.platform.getRuntimeConfig === "function" ? app.platform.getRuntimeConfig() : window.EmbryoRuntimeConfig) || {};
     return config.provider === "firestore" && config.firebase && config.firebase.enabled && hasFirebaseConfig(config.firebase.config);
   };
 })();

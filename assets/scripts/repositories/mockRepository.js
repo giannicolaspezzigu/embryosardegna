@@ -31,6 +31,18 @@
     return Number.isFinite(timestamp) ? timestamp : null;
   }
 
+  function getLatestBodyConditionScore(visits, fallbackValue) {
+    for (let index = 0; index < (visits || []).length; index += 1) {
+      const visit = visits[index];
+
+      if (visit && visit.bodyConditionScore !== null && visit.bodyConditionScore !== undefined) {
+        return visit.bodyConditionScore;
+      }
+    }
+
+    return fallbackValue === undefined ? null : fallbackValue;
+  }
+
   function createUnassignedSessionRecord(clinicId) {
     return app.domain.normalizers.session(
       app.domain.helpers.mergeDeep(app.domain.models.createUnassignedSessionTemplate(), {
@@ -273,6 +285,7 @@
       lastVisitAt: latestVisit ? latestVisit.visitAt : null,
       lastVisitId: latestVisit ? latestVisit.id : null,
       lastVisitSummary: latestVisit ? app.domain.normalizers.animalSnapshotFromVisit(latestVisit) : null,
+      bodyConditionScore: getLatestBodyConditionScore(orderedVisits, orderedVisits.length ? null : animalNode.record.bodyConditionScore),
       updatedAt: app.domain.modelUtils.nowIso(),
     });
 
@@ -387,7 +400,7 @@
     clinicNode.record = app.domain.normalizers.clinic({
       id: this.defaultClinicId,
       name: "Embryo Sardegna",
-      defaultSpecies: ["ovine", "bovine"],
+      defaultSpecies: ["ovine", "bovine", "caprine"],
       createdAt,
     });
     this.ensureUnassignedSession(this.defaultClinicId);

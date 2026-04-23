@@ -7,7 +7,7 @@
     sideLabels: { L: "Sinistro", R: "Destro" },
     shortSideLabels: { L: "Sin.", R: "Des." },
     logSideLabels: { L: "SIN", R: "DES", B: "ENT" },
-    speciesLabels: { ovine: "Ovino", bovine: "Bovino" },
+    speciesLabels: { ovine: "Ovino", bovine: "Bovino", caprine: "Caprino" },
     reproductiveRoleLabels: {
       recipient: "Ricevente",
       donor: "Donatrice",
@@ -80,6 +80,7 @@
       animals: [],
       activeView: "operational",
       animalSearchTerm: "",
+      visitHistoryExpanded: false,
       selectedAnimal: null,
       visitsByAnimalId: {},
       selectedVisit: null,

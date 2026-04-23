@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Embryo Sardegna - Firestore Live Test</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #0f1720;
+        color: #e8edf3;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      p {
+        margin: 0 0 18px;
+        color: #b5c1cf;
+      }
+
+      .summary,
+      .result {
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #16202b;
+        margin-bottom: 12px;
+      }
+
+      .pass {
+        border-left: 4px solid #1db954;
+      }
+
+      .fail {
+        border-left: 4px solid #ff5d5d;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        font-family: Consolas, monospace;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Firestore Live Test</h1>
+      <p>Seed e verifica reale su <code>clinic_sync_test</code>.</p>
+      <section id="summary" class="summary">
+        <strong>In esecuzione...</strong>
+      </section>
+      <section id="results"></section>
+    </main>
+
+    <script src="assets/scripts/repositories/runtimeConfig.js"></script>
+    <script src="assets/scripts/platform.js"></script>
+    <script src="assets/scripts/state.js"></script>
+    <script src="assets/scripts/domain/enums.js"></script>
+    <script src="assets/scripts/domain/models.js"></script>
+    <script src="assets/scripts/domain/normalizers.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore-compat.js"></script>
+    <script src="assets/scripts/repositories/contract.js"></script>
+    <script src="assets/scripts/repositories/mockRepository.js"></script>
+    <script src="assets/scripts/repositories/firestoreRepository.js"></script>
+    <script src="assets/scripts/repositories/localPersistence.js"></script>
+    <script src="assets/scripts/repositories/syncedRepository.js"></script>
+    <script src="assets/scripts/repositories/bootstrap.js"></script>
+    <script src="assets/scripts/tests/firestoreLiveTest.js"></script>
+  </body>
+</html>

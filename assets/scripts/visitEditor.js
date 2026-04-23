@@ -251,13 +251,25 @@
     return `T${uterus.tone || "-"} V${uterus.vascularization || "-"} L${uterus.luminalFluid || "-"}`;
   }
 
+  function getDefaultOperatorName() {
+    const authSession =
+      app.data && app.data.authSession
+        ? app.data.authSession
+        : app.auth && typeof app.auth.getCurrentSession === "function"
+          ? app.auth.getCurrentSession()
+          : null;
+
+    return (authSession && authSession.displayName) || DEFAULT_OPERATOR_NAME;
+  }
+
   function getDefaultContextValues() {
     return {
       visitAt: app.utils.toLocalDateTimeInputValue(new Date()),
       visitPurpose: "follicular_monitoring",
       programType: "unknown",
       protocolName: "",
-      operatorName: DEFAULT_OPERATOR_NAME,
+      operatorName: getDefaultOperatorName(),
+      bodyConditionScore: "",
       pregnancyStatus: "unknown",
       doppler: false,
     };
@@ -314,6 +326,10 @@
     app.dom.refs.programTypeInput.value = contextValues.programType;
     app.dom.refs.protocolNameInput.value = contextValues.protocolName;
     app.dom.refs.operatorNameInput.value = contextValues.operatorName;
+    app.dom.refs.visitBodyConditionScoreInput.value =
+      contextValues.bodyConditionScore !== null && contextValues.bodyConditionScore !== undefined
+        ? String(contextValues.bodyConditionScore)
+        : "";
     app.dom.refs.pregnancyStatusInput.value = contextValues.pregnancyStatus;
     app.dom.refs.dopplerModeInput.checked = Boolean(contextValues.doppler);
     app.dom.refs.protocolEventAtInput.value = contextValues.visitAt;
@@ -509,7 +525,8 @@
       sessionName: selectedAnimal ? selectedAnimal.sessionName : (app.state.workspace.activeSession ? app.state.workspace.activeSession.name : ""),
       visitAt,
       visitPurpose: app.dom.refs.visitPurposeInput.value,
-      operatorName: app.dom.refs.operatorNameInput.value.trim() || DEFAULT_OPERATOR_NAME,
+      operatorName: app.dom.refs.operatorNameInput.value.trim() || getDefaultOperatorName(),
+      bodyConditionScore: app.dom.refs.visitBodyConditionScoreInput.value ? Number(app.dom.refs.visitBodyConditionScoreInput.value) : null,
       deviceId: "web_local_demo",
       species: selectedAnimal ? selectedAnimal.species : "ovine",
       notes: annotationText,
@@ -804,7 +821,9 @@
       visitPurpose: visit.visitPurpose || "follicular_monitoring",
       programType: (visit.protocolContext && visit.protocolContext.programType) || "unknown",
       protocolName: (visit.protocolContext && visit.protocolContext.protocolName) || "",
-      operatorName: visit.operatorName || DEFAULT_OPERATOR_NAME,
+      operatorName: visit.operatorName || getDefaultOperatorName(),
+      bodyConditionScore:
+        visit.bodyConditionScore !== null && visit.bodyConditionScore !== undefined ? visit.bodyConditionScore : "",
       pregnancyStatus: (visit.summary && visit.summary.pregnancyStatus) || "unknown",
       doppler: Boolean(visit.examMode && visit.examMode.doppler),
     });
@@ -953,6 +972,7 @@
             programType: app.dom.refs.programTypeInput.value || defaults.programType,
             protocolName: app.dom.refs.protocolNameInput.value,
             operatorName: app.dom.refs.operatorNameInput.value || defaults.operatorName,
+            bodyConditionScore: app.dom.refs.visitBodyConditionScoreInput.value || defaults.bodyConditionScore,
             pregnancyStatus: "unknown",
             doppler: false,
           }
@@ -1074,12 +1094,24 @@
         await app.workspace.selectVisit(savedVisit.id);
         this.resetEditor({ preserveContext: true });
 
+        const syncState =
+          app.data && app.data.repository && typeof app.data.repository.getSyncState === "function"
+            ? app.data.repository.getSyncState()
+            : null;
+        const hasPendingSync = syncState && syncState.pendingCount > 0;
+
         if (isEditing) {
-          app.ui.toast("Visita aggiornata");
+          app.ui.toast(hasPendingSync ? "Visita aggiornata in locale, da sincronizzare" : "Visita aggiornata", hasPendingSync ? "gold" : undefined);
         } else if (isImported) {
-          app.ui.toast("Nuova visita derivata salvata");
+          app.ui.toast(
+            hasPendingSync ? "Nuova visita derivata salvata in locale, da sincronizzare" : "Nuova visita derivata salvata",
+            hasPendingSync ? "gold" : undefined
+          );
         } else {
-          app.ui.toast("Visita salvata nel repository demo");
+          app.ui.toast(
+            hasPendingSync ? "Visita salvata in locale, da sincronizzare" : "Visita salvata",
+            hasPendingSync ? "gold" : undefined
+          );
         }
       } catch (error) {
         console.error(error);

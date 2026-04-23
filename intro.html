@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Embryo Sardegna - Intro</title>
+  <title>Embryo Sardegna - Accesso</title>
   <link rel="stylesheet" href="assets/styles/intro.css">
 </head>
 <body>
@@ -57,25 +57,31 @@
       <form class="login-panel" id="introLoginForm" autocomplete="off">
         <div class="login-heading">
           <span class="status-dot" aria-hidden="true"></span>
-          <span>Operator access</span>
+          <span>Accesso operatore</span>
         </div>
         <label class="field">
-          <span>Username</span>
-          <input type="text" name="username" placeholder="operator.demo" value="operator.demo" required>
+          <span>Operatore o email</span>
+          <input type="text" name="identifier" placeholder="operator.demo o email" required>
         </label>
         <label class="field">
           <span>Password</span>
-          <input type="password" name="password" placeholder="********" value="demo" required>
+          <input type="password" name="password" placeholder="********" required>
         </label>
         <button class="login-button" type="submit">
-          <span class="button-copy">Enter demo</span>
+          <span class="button-copy">Accedi</span>
           <span class="button-progress" aria-hidden="true"></span>
         </button>
-        <p class="login-state" id="loginState" role="status" aria-live="polite">Demo login ready</p>
+        <p class="login-state" id="loginState" role="status" aria-live="polite">Inserisci le credenziali.</p>
       </form>
     </section>
   </main>
 
+  <script src="assets/scripts/repositories/runtimeConfig.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore-compat.js"></script>
+  <script src="assets/scripts/platform.js"></script>
+  <script src="assets/scripts/auth.js"></script>
   <script src="assets/scripts/intro.js"></script>
 </body>
 </html>

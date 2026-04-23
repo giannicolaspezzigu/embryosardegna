@@ -5,7 +5,7 @@
 
   function getStoredTheme() {
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
+      const stored = app.platform.storage.getItem(STORAGE_KEY);
       return THEMES.has(stored) ? stored : "dark";
     } catch (error) {
       return "dark";
@@ -14,7 +14,7 @@
 
   function persistTheme(theme) {
     try {
-      window.localStorage.setItem(STORAGE_KEY, theme);
+      app.platform.storage.setItem(STORAGE_KEY, theme);
     } catch (error) {
       // No-op: theme persistence is optional.
     }

@@ -49,7 +49,7 @@
       id: "",
       name: "",
       timezone: "Europe/Rome",
-      defaultSpecies: ["ovine"],
+      defaultSpecies: ["ovine", "bovine", "caprine"],
       createdAt: nowIso(),
       schemaVersion: 2,
     };
@@ -69,6 +69,8 @@
       createdAt: nowIso(),
       updatedAt: nowIso(),
       updatedBy: "",
+      deviceId: "",
+      syncStatus: "pending",
       schemaVersion: 2,
     };
   }
@@ -87,6 +89,8 @@
       createdAt: nowIso(),
       updatedAt: nowIso(),
       updatedBy: "system",
+      deviceId: "system",
+      syncStatus: "synced",
       schemaVersion: 2,
     };
   }
@@ -137,6 +141,8 @@
       createdAt: nowIso(),
       updatedAt: nowIso(),
       updatedBy: "",
+      deviceId: "",
+      syncStatus: "pending",
       deletedAt: null,
       schemaVersion: 2,
     };
@@ -202,6 +208,7 @@
       visitPurpose: "follicular_monitoring",
       operatorId: "",
       operatorName: "",
+      bodyConditionScore: null,
       deviceId: "",
       species: "ovine",
       notes: "",
@@ -260,12 +267,20 @@
       unit: "",
       route: "",
       notes: "",
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+      updatedBy: "",
+      deviceId: "",
+      syncStatus: "pending",
+      schemaVersion: 2,
     };
   }
 
   function createPregnancyCheckTemplate() {
     return {
       id: "",
+      clinicId: "clinic_main",
+      animalId: "",
       checkAt: nowIso(),
       method: "ultrasound",
       daysFromBreeding: null,
@@ -276,6 +291,11 @@
       crlMm: null,
       estimatedGestationalAgeDays: null,
       notes: "",
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+      updatedBy: "",
+      deviceId: "",
+      syncStatus: "pending",
       schemaVersion: 2,
     };
   }
@@ -289,6 +309,12 @@
       capturedAt: nowIso(),
       label: "",
       notes: "",
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+      updatedBy: "",
+      deviceId: "",
+      syncStatus: "pending",
+      schemaVersion: 2,
     };
   }
 

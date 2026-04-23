@@ -109,7 +109,7 @@
       dataIndex: withFont(base(paleYellowSoft), 16, true, false),
       dataId: withFont(base(paleYellowSoft), 14, true, false),
       dataDate: Object.assign(base(paleYellowSoft), {
-        numFmt: "dd/mm/yyyy",
+        numFmt: "dd/mm/yyyy hh:mm",
       }),
       dataText: base(paleYellowSoft),
       dataLeftSmall: base(leftBlueSoft),
@@ -208,20 +208,29 @@
     return "";
   }
 
-  function parseDateOnly(isoValue) {
+  function parseVisitDateTimeForExcel(isoValue) {
     const raw = String(isoValue || "");
-    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const dateOnlyMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
-    if (match) {
-      return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    if (dateOnlyMatch) {
+      return new Date(Date.UTC(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]), 12, 0, 0));
     }
 
-    const fallback = new Date(raw);
-    if (Number.isNaN(fallback.getTime())) {
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) {
       return "";
     }
 
-    return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
+    return new Date(
+      Date.UTC(
+        parsed.getFullYear(),
+        parsed.getMonth(),
+        parsed.getDate(),
+        parsed.getHours(),
+        parsed.getMinutes(),
+        parsed.getSeconds()
+      )
+    );
   }
 
   function parseDateFilter(value, endOfDay) {
@@ -239,6 +248,12 @@
     const ovaries = visit && visit.ovaries ? visit.ovaries : {};
     const side = ovaries[sideKey] || {};
     return Array.isArray(side.structures) ? side.structures : [];
+  }
+
+  function getSideCounts(visit, sideKey) {
+    const ovaries = visit && visit.ovaries ? visit.ovaries : {};
+    const side = ovaries[sideKey] || {};
+    return side.counts || {};
   }
 
   function isFollicleStructure(structure) {
@@ -289,8 +304,12 @@
 
   function buildSideSummary(visit, sideKey, buckets) {
     const structures = getSideStructures(visit, sideKey);
+    const sideCounts = getSideCounts(visit, sideKey);
 
-    if (!structures.length) {
+    if (
+      !structures.length &&
+      !(Number(sideCounts.totalFollicles) || Number(sideCounts.corporaLutea) || Number(sideCounts.ovulations) || Number(sideCounts.cysts))
+    ) {
       return "/";
     }
 
@@ -329,6 +348,10 @@
         cystCount += 1;
       }
     }
+
+    clCount = Math.max(clCount, Number(sideCounts.corporaLutea) || 0);
+    ovulationCount = Math.max(ovulationCount, Number(sideCounts.ovulations) || 0);
+    cystCount = Math.max(cystCount, Number(sideCounts.cysts) || 0);
 
     const parts = [];
 
@@ -381,7 +404,7 @@
 
     return {
       animalId: getDisplayAnimalId(animal),
-      visitDate: parseDateOnly(visit.visitAt),
+      visitDateTime: parseVisitDateTimeForExcel(visit.visitAt),
       postPartumDays: getPostPartumDays(animal, visit),
       leftSummary: buildSideSummary(visit, "left", LEFT_BUCKETS),
       rightSummary: buildSideSummary(visit, "right", RIGHT_BUCKETS),
@@ -410,7 +433,7 @@
 
     setCell(worksheet, "A1", "n", STYLES.row1Index);
     setCell(worksheet, "B1", "ID capo", STYLES.row1Header);
-    setCell(worksheet, "C1", "Data ecografia", STYLES.row1Date);
+    setCell(worksheet, "C1", "Data e ora ecografia", STYLES.row1Date);
     setBlankStyledCell(worksheet, "D1", STYLES.row1Header);
     setCell(worksheet, "F1", "OVAIO SINISTRO", STYLES.row1LeftGroup);
     setBlankStyledCell(worksheet, "R1", STYLES.row1LeftGroup);
@@ -445,7 +468,7 @@
   function writeDataRow(worksheet, rowNumber, record, animalIndex, showAnimalHeaders) {
     setCell(worksheet, `A${rowNumber}`, showAnimalHeaders ? animalIndex : "", STYLES.dataIndex);
     setCell(worksheet, `B${rowNumber}`, showAnimalHeaders ? record.animalId : "", STYLES.dataId);
-    setCell(worksheet, `C${rowNumber}`, record.visitDate || "", STYLES.dataDate);
+    setCell(worksheet, `C${rowNumber}`, record.visitDateTime || "", STYLES.dataDate);
     setCell(worksheet, `D${rowNumber}`, record.postPartumDays, STYLES.dataText);
     setCell(worksheet, `E${rowNumber}`, record.leftSummary, STYLES.dataText);
 
@@ -604,12 +627,79 @@
     }, 0);
   }
 
-  function buildFileName() {
+  function buildExportDateStamp() {
     const now = new Date();
     const yyyy = String(now.getFullYear());
     const mm = String(now.getMonth() + 1).padStart(2, "0");
     const dd = String(now.getDate()).padStart(2, "0");
-    return `embryosardegna_follicoli_${yyyy}-${mm}-${dd}.xlsx`;
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function sanitizeFileNameSegment(value) {
+    return String(value || "")
+      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function ensureExcelExtension(fileName) {
+    const normalized = String(fileName || "").trim();
+
+    if (!normalized) {
+      return "";
+    }
+
+    return /\.xlsx$/i.test(normalized) ? normalized : `${normalized}.xlsx`;
+  }
+
+  function buildSuggestedFileName(filters) {
+    const settings = filters || {};
+
+    if (settings.sessionId && settings.sessionId !== "all") {
+      const sessions = app.state.workspace.sessions || [];
+      const session = sessions.find((candidate) => candidate.id === settings.sessionId);
+      const sessionName = sanitizeFileNameSegment(session && session.name ? session.name : "");
+
+      if (sessionName) {
+        return ensureExcelExtension(sessionName);
+      }
+    }
+
+    return `embryosardegna_follicoli_${buildExportDateStamp()}.xlsx`;
+  }
+
+  async function saveWorkbookBuffer(buffer, fileName) {
+    const normalizedFileName = ensureExcelExtension(sanitizeFileNameSegment(fileName));
+
+    if (typeof window.showSaveFilePicker === "function") {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: normalizedFileName,
+          types: [
+            {
+              description: "Excel Workbook",
+              accept: {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+              },
+            },
+          ],
+        });
+        const writable = await fileHandle.createWritable();
+
+        await writable.write(buffer);
+        await writable.close();
+        return true;
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          return false;
+        }
+
+        throw error;
+      }
+    }
+
+    downloadWorkbookBuffer(buffer, normalizedFileName);
+    return true;
   }
 
   function assertExcelJsAvailable() {
@@ -667,6 +757,8 @@
       }
 
       const filters = buildExportFiltersFromDom();
+      const fileName = buildSuggestedFileName(filters);
+
       const groups = await collectExportGroups(filters);
       const workbook = new window.ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Follicoli");
@@ -696,7 +788,13 @@
       }
 
       const buffer = await workbook.xlsx.writeBuffer();
-      downloadWorkbookBuffer(buffer, buildFileName());
+      const saved = await saveWorkbookBuffer(buffer, fileName);
+
+      if (!saved) {
+        app.ui.toast("Export annullato");
+        return;
+      }
+
       app.ui.toast(groups.length ? "Excel esportato" : "Excel esportato: template vuoto");
     },
   };

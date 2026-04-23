@@ -2,6 +2,21 @@
   window.EmbryoRuntimeConfig = window.EmbryoRuntimeConfig || {
     provider: "firestore",
     clinicId: "clinic_main",
+    auth: {
+      enabled: true,
+      loginPage: "./intro.html",
+      appPage: "./embryosardegna.html",
+      persistence: "local",
+      usernameEmailDomain: "embryosardegna.local",
+      userProfileCollection: "users",
+      useCachedAccessOffline: true,
+    },
+    sync: {
+      enabled: true,
+      pollIntervalMs: 300000,
+      syncOnWindowFocus: true,
+      syncOnVisibility: true,
+    },
     firebase: {
       enabled: true,
       enableOffline: true,
