@@ -1,0 +1,5 @@
+Embryosardegna restore point
+Version: ver 1.4
+Created: 2026-04-24 00:59:24 +02:00
+Scope: stable snapshot before production go-live on clinic_main
+Excluded: .git, backups, Exceldorper 62 31.03.xlsx
