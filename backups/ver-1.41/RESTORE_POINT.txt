@@ -1,0 +1,5 @@
+Embryo Sardegna restore point
+Version: 1.41
+Created: 2026-04-25
+Scope: stable snapshot after sync/cache optimizations and version info button; before UI redesign work.
+Notes: previous tracked backup was ver-1.4.
