@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1260" viewBox="0 0 1500 1260" role="img" aria-labelledby="title desc">
+  <title id="title">Modello dati Embryo Sardegna v1.41</title>
+  <desc id="desc">Diagramma logico delle entita dati, delle relazioni principali e del calcolo giorni post parto.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7faf6"/>
+      <stop offset="100%" stop-color="#eef5ef"/>
+    </linearGradient>
+    <linearGradient id="entityHeader" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f4d3a"/>
+      <stop offset="100%" stop-color="#2f7a58"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#163326" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5.5 L0,11 Z" fill="#31584a"/>
+    </marker>
+    <marker id="arrowSoft" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5.5 L0,11 Z" fill="#7a6b25"/>
+    </marker>
+    <style>
+      .canvas { fill: url(#bg); }
+      .title { font-family: Arial, sans-serif; font-size: 34px; font-weight: 800; fill: #163326; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 16px; fill: #49655a; }
+      .box { fill: #ffffff; stroke: #c8d7ce; stroke-width: 1.4; rx: 14; filter: url(#shadow); }
+      .header { fill: url(#entityHeader); rx: 14; }
+      .headerText { font-family: Arial, sans-serif; font-size: 18px; font-weight: 800; fill: #ffffff; letter-spacing: .4px; }
+      .entityNote { font-family: Arial, sans-serif; font-size: 12px; fill: #d8f1e5; }
+      .field { font-family: Consolas, "Courier New", monospace; font-size: 13px; fill: #21362e; }
+      .fieldStrong { font-family: Consolas, "Courier New", monospace; font-size: 13px; font-weight: 700; fill: #123c2b; }
+      .fieldMuted { font-family: Consolas, "Courier New", monospace; font-size: 12px; fill: #64756d; }
+      .relation { stroke: #31584a; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .relationSoft { stroke: #7a6b25; stroke-width: 2; fill: none; stroke-dasharray: 6 5; marker-end: url(#arrowSoft); }
+      .label { font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #254a3d; }
+      .labelSoft { font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #7a6b25; }
+      .legendBox { fill: #fdfbf1; stroke: #d9c875; stroke-width: 1.2; rx: 12; }
+      .legendTitle { font-family: Arial, sans-serif; font-size: 15px; font-weight: 800; fill: #4a3d12; }
+      .legendText { font-family: Arial, sans-serif; font-size: 13px; fill: #55491a; }
+      .chip { fill: #edf5f0; stroke: #c8d7ce; rx: 16; }
+      .chipText { font-family: Arial, sans-serif; font-size: 12px; font-weight: 700; fill: #365649; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1500" height="1260"/>
+  <text class="title" x="60" y="58">Modello dati Embryo Sardegna v1.41</text>
+  <text class="subtitle" x="60" y="86">Schema logico ricavato da models.js e normalizers.js, aggiornato con Data ultimo parto.</text>
+
+  <g transform="translate(60,130)">
+    <rect class="box" width="370" height="190"/>
+    <rect class="header" width="370" height="56"/>
+    <text class="headerText" x="18" y="28">CLINIC</text>
+    <text class="entityNote" x="18" y="46">clinics/{clinicId}</text>
+    <text class="fieldStrong" x="18" y="82">id</text>
+    <text class="field" x="18" y="105">name</text>
+    <text class="field" x="18" y="128">timezone = Europe/Rome</text>
+    <text class="field" x="18" y="151">defaultSpecies[]</text>
+    <text class="fieldMuted" x="18" y="174">createdAt, schemaVersion</text>
+  </g>
+
+  <g transform="translate(60,390)">
+    <rect class="box" width="370" height="220"/>
+    <rect class="header" width="370" height="56"/>
+    <text class="headerText" x="18" y="28">SESSION</text>
+    <text class="entityNote" x="18" y="46">clinics/{clinicId}/sessions/{sessionId}</text>
+    <text class="fieldStrong" x="18" y="82">id, clinicId</text>
+    <text class="field" x="18" y="105">name, code, description</text>
+    <text class="field" x="18" y="128">status</text>
+    <text class="field" x="18" y="151">startDate, endDate</text>
+    <text class="field" x="18" y="174">notes</text>
+    <text class="fieldMuted" x="18" y="197">createdAt, updatedAt, updatedBy, deviceId, syncStatus</text>
+  </g>
+
+  <g transform="translate(60,730)">
+    <rect class="box" width="370" height="260"/>
+    <rect class="header" width="370" height="56"/>
+    <text class="headerText" x="18" y="28">PREGNANCY CHECK</text>
+    <text class="entityNote" x="18" y="46">animals/{animalId}/pregnancyChecks/{checkId}</text>
+    <text class="fieldStrong" x="18" y="82">id, clinicId, animalId</text>
+    <text class="field" x="18" y="105">checkAt, method</text>
+    <text class="field" x="18" y="128">daysFromBreeding</text>
+    <text class="field" x="18" y="151">pregnancyStatus</text>
+    <text class="field" x="18" y="174">embryoCount, heartbeatDetected</text>
+    <text class="field" x="18" y="197">fetalViability, crlMm</text>
+    <text class="field" x="18" y="220">estimatedGestationalAgeDays, notes</text>
+    <text class="fieldMuted" x="18" y="243">createdAt, updatedAt, updatedBy, deviceId, syncStatus</text>
+  </g>
+
+  <g transform="translate(520,130)">
+    <rect class="box" width="430" height="380"/>
+    <rect class="header" width="430" height="56"/>
+    <text class="headerText" x="18" y="28">ANIMAL</text>
+    <text class="entityNote" x="18" y="46">clinics/{clinicId}/animals/{animalId}</text>
+    <text class="fieldStrong" x="18" y="82">id, clinicId, sessionId, sessionName</text>
+    <text class="field" x="18" y="105">animalCode, displayName</text>
+    <text class="field" x="18" y="128">species, breed, sex, earTag</text>
+    <text class="field" x="18" y="151">farmId, farmName, groupId, groupName</text>
+    <text class="field" x="18" y="174">birthDate</text>
+    <text class="fieldStrong" x="18" y="197">lastParturitionDate</text>
+    <text class="field" x="18" y="220">ageMonths, parity, bodyWeightKg</text>
+    <text class="field" x="18" y="243">bodyConditionScore, lactationStatus</text>
+    <text class="field" x="18" y="266">reproductiveRole, status, notes</text>
+    <text class="field" x="18" y="289">researchTags[], speciesData, extensions</text>
+    <text class="field" x="18" y="312">visitCount, lastVisitAt, lastVisitId</text>
+    <text class="field" x="18" y="335">lastVisitSummary rollup</text>
+    <text class="fieldMuted" x="18" y="358">createdAt, updatedAt, updatedBy, deviceId, syncStatus, deletedAt</text>
+  </g>
+
+  <g transform="translate(520,600)">
+    <rect class="box" width="430" height="430"/>
+    <rect class="header" width="430" height="56"/>
+    <text class="headerText" x="18" y="28">VISIT</text>
+    <text class="entityNote" x="18" y="46">animals/{animalId}/visits/{visitId}</text>
+    <text class="fieldStrong" x="18" y="82">id, clinicId, animalId, sessionId</text>
+    <text class="field" x="18" y="105">sessionName, visitAt, visitPurpose</text>
+    <text class="field" x="18" y="128">operatorId, operatorName</text>
+    <text class="field" x="18" y="151">bodyConditionScore</text>
+    <text class="field" x="18" y="174">deviceId, species</text>
+    <text class="field" x="18" y="197">notes, annotationText</text>
+    <text class="field" x="18" y="220">examMode { bMode, doppler }</text>
+    <text class="field" x="18" y="243">uterus {...}</text>
+    <text class="field" x="18" y="266">ovaries.left/right { counts, structures[] }</text>
+    <text class="field" x="18" y="289">ovaries.total counts</text>
+    <text class="field" x="18" y="312">summary {...}</text>
+    <text class="field" x="18" y="335">protocolContext {...}</text>
+    <text class="field" x="18" y="358">research {...}, extensions {...}</text>
+    <text class="fieldMuted" x="18" y="389">createdAt, updatedAt, updatedBy, syncStatus, schemaVersion</text>
+  </g>
+
+  <g transform="translate(1040,130)">
+    <rect class="box" width="360" height="280"/>
+    <rect class="header" width="360" height="56"/>
+    <text class="headerText" x="18" y="28">OVARIAN STRUCTURE</text>
+    <text class="entityNote" x="18" y="46">visit.ovaries.left/right.structures[]</text>
+    <text class="fieldStrong" x="18" y="82">id, side</text>
+    <text class="field" x="18" y="105">type = follicle | corpus_luteum | ovulation | cyst</text>
+    <text class="field" x="18" y="128">sizeMm</text>
+    <text class="field" x="18" y="151">clAreaMm2, clDiameterMm</text>
+    <text class="field" x="18" y="174">isCavitary, dopplerPerfusionScore</text>
+    <text class="field" x="18" y="197">clockHour</text>
+    <text class="field" x="18" y="220">position { x, y, normalized }</text>
+    <text class="field" x="18" y="243">source, notes</text>
+    <text class="fieldMuted" x="18" y="266">createdAt</text>
+  </g>
+
+  <g transform="translate(1040,460)">
+    <rect class="box" width="360" height="220"/>
+    <rect class="header" width="360" height="56"/>
+    <text class="headerText" x="18" y="28">ATTACHMENT</text>
+    <text class="entityNote" x="18" y="46">visits/{visitId}/attachments/{attachmentId}</text>
+    <text class="fieldStrong" x="18" y="82">id</text>
+    <text class="field" x="18" y="105">type = image | video | document | report</text>
+    <text class="field" x="18" y="128">url, thumbnailUrl</text>
+    <text class="field" x="18" y="151">capturedAt, label, notes</text>
+    <text class="fieldMuted" x="18" y="184">createdAt, updatedAt, updatedBy, deviceId, syncStatus</text>
+  </g>
+
+  <g transform="translate(1040,740)">
+    <rect class="box" width="360" height="220"/>
+    <rect class="header" width="360" height="56"/>
+    <text class="headerText" x="18" y="28">PROTOCOL EVENT</text>
+    <text class="entityNote" x="18" y="46">visits/{visitId}/events/{eventId}</text>
+    <text class="fieldStrong" x="18" y="82">id, eventAt</text>
+    <text class="field" x="18" y="105">type, name</text>
+    <text class="field" x="18" y="128">dose, unit, route</text>
+    <text class="field" x="18" y="151">notes</text>
+    <text class="fieldMuted" x="18" y="184">createdAt, updatedAt, updatedBy, deviceId, syncStatus</text>
+  </g>
+
+  <g transform="translate(1040,1010)">
+    <rect class="box" width="360" height="190"/>
+    <rect class="header" width="360" height="56"/>
+    <text class="headerText" x="18" y="28">VISIT SUBOBJECTS</text>
+    <text class="entityNote" x="18" y="46">embedded in visit</text>
+    <text class="field" x="18" y="82">uterus: tone, vascularization, luminalFluid</text>
+    <text class="field" x="18" y="105">counts: small, medium, large, OV, CL, cysts</text>
+    <text class="field" x="18" y="128">summary: headline, shortText, pregnancyStatus</text>
+    <text class="field" x="18" y="151">protocolContext: program, cycle, AI, ET</text>
+    <text class="field" x="18" y="174">research: studyId, cohort, season, samplingPoint</text>
+  </g>
+
+  <path class="relation" d="M245 320 L245 390"/>
+  <text class="label" x="258" y="360">1:N</text>
+
+  <path class="relation" d="M430 225 L520 225"/>
+  <text class="label" x="452" y="212">clinicId</text>
+
+  <path class="relation" d="M430 500 C465 500 482 330 520 320"/>
+  <text class="label" x="444" y="452">sessionId</text>
+
+  <path class="relation" d="M735 510 L735 600"/>
+  <text class="label" x="748" y="560">1:N visite</text>
+
+  <path class="relation" d="M430 860 C475 860 475 805 520 805"/>
+  <text class="label" x="443" y="836">animalId</text>
+
+  <path class="relation" d="M950 700 L1040 270"/>
+  <text class="label" x="970" y="462">structures[]</text>
+
+  <path class="relation" d="M950 760 L1040 570"/>
+  <text class="label" x="968" y="640">attachments</text>
+
+  <path class="relation" d="M950 895 L1040 850"/>
+  <text class="label" x="968" y="865">events</text>
+
+  <path class="relation" d="M950 1000 L1040 1095"/>
+  <text class="label" x="966" y="1060">embedded</text>
+
+  <path class="relationSoft" d="M815 330 C940 410 970 530 735 600"/>
+  <text class="labelSoft" x="830" y="548">Giorni post-parto = visitAt - lastParturitionDate</text>
+
+  <g transform="translate(60,1080)">
+    <rect class="legendBox" width="890" height="120"/>
+    <text class="legendTitle" x="18" y="28">Note operative</text>
+    <text class="legendText" x="18" y="55">La Data ultimo parto e salvata sull'anagrafica animale come animal.lastParturitionDate.</text>
+    <text class="legendText" x="18" y="78">I Giorni da ultimo parto sono un dato derivato: si calcolano alla data della visita e non vengono salvati nella visita.</text>
+    <text class="legendText" x="18" y="101">Le visite portano allegati ed eventi come collezioni figlie; utero, ovaie, conteggi, summary e protocolContext sono embedded.</text>
+  </g>
+
+  <g transform="translate(1010,48)">
+    <rect class="chip" x="0" y="0" width="130" height="32"/>
+    <text class="chipText" x="16" y="21">schemaVersion 2</text>
+    <rect class="chip" x="146" y="0" width="130" height="32"/>
+    <text class="chipText" x="162" y="21">syncStatus</text>
+    <rect class="chip" x="292" y="0" width="160" height="32"/>
+    <text class="chipText" x="308" y="21">createdAt / updatedAt</text>
+  </g>
+</svg>

@@ -1,0 +1,5 @@
+﻿Embryo Sardegna restore point
+Version: 1.42
+Created: 2026-05-22
+Scope: snapshot before sync cost optimization work.
+Notes: includes export Excel updates for birth date/BCS/age/postpartum days, dynamic CL columns, ovulation count, editor visit-save behavior, last parturition date model, and targeted sync flush state.

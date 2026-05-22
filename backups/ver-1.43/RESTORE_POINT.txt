@@ -1,0 +1,5 @@
+﻿Embryo Sardegna restore point
+Version: 1.43
+Created: 2026-05-22
+Scope: snapshot after GUI defaults, BCS carry-forward, repo badge removal, export Excel updates, and sync cost optimization.
+Notes: app header/version info set to 1.43 before backup.

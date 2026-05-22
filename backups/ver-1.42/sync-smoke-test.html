@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Embryo Sardegna - Sync Smoke Test</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #0f1720;
+        color: #e8edf3;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      p {
+        margin: 0 0 20px;
+        color: #b5c1cf;
+      }
+
+      .summary {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #16202b;
+      }
+
+      .summary.pass {
+        border-left: 4px solid #1db954;
+      }
+
+      .summary.fail {
+        border-left: 4px solid #ff5d5d;
+      }
+
+      .test-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .test {
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #16202b;
+      }
+
+      .test.pass {
+        border-left: 4px solid #1db954;
+      }
+
+      .test.fail {
+        border-left: 4px solid #ff5d5d;
+      }
+
+      .test h2 {
+        margin: 0 0 6px;
+        font-size: 16px;
+      }
+
+      .test pre {
+        margin: 0;
+        white-space: pre-wrap;
+        font-family: Consolas, monospace;
+        font-size: 13px;
+        color: #d4dbe4;
+      }
+    </style>
+    <script>
+      (function () {
+        const runtime = {
+          online: false,
+          listeners: [],
+          storage: {},
+        };
+
+        function createStorage() {
+          return {
+            getItem(key) {
+              return Object.prototype.hasOwnProperty.call(runtime.storage, key) ? runtime.storage[key] : null;
+            },
+            setItem(key, value) {
+              runtime.storage[key] = String(value);
+            },
+            removeItem(key) {
+              delete runtime.storage[key];
+            },
+          };
+        }
+
+        window.__EmbryoTestRuntime = runtime;
+        window.__setEmbryoTestOnline = function (online) {
+          runtime.online = Boolean(online);
+          runtime.listeners.slice().forEach((listener) => listener(runtime.online));
+        };
+        window.EmbryoPlatformAdapter = {
+          storage: createStorage(),
+          network: {
+            isOnline() {
+              return runtime.online;
+            },
+            onStatusChange(listener) {
+              runtime.listeners.push(listener);
+              return function () {
+                runtime.listeners = runtime.listeners.filter((current) => current !== listener);
+              };
+            },
+          },
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Sync Smoke Test</h1>
+      <p>Harness locale per repository sync, merge, tombstone e date sessione.</p>
+      <section id="summary" class="summary">
+        <strong>In esecuzione...</strong>
+      </section>
+      <section id="results" class="test-list"></section>
+    </main>
+
+    <script src="./assets/scripts/platform.js"></script>
+    <script src="./assets/scripts/domain/enums.js"></script>
+    <script src="./assets/scripts/domain/models.js"></script>
+    <script src="./assets/scripts/domain/normalizers.js"></script>
+    <script src="./assets/scripts/repositories/contract.js"></script>
+    <script src="./assets/scripts/repositories/mockRepository.js"></script>
+    <script src="./assets/scripts/repositories/localPersistence.js"></script>
+    <script src="./assets/scripts/repositories/syncedRepository.js"></script>
+    <script src="./assets/scripts/backup.js"></script>
+    <script src="./assets/scripts/tests/syncSmokeTest.js"></script>
+  </body>
+</html>
