@@ -1,0 +1,6 @@
+﻿Embryo Sardegna - restore point
+Versione: 1.45
+Creato: 2026-05-22 14:24:28
+Origine: C:\Users\lupo_\Desktop\embryosardegna
+Note: backup creato dopo verifica v1.45: export immagini visite PDF, pannello Export, About window aggiornata e smoke test sync locale superato.
+Esclusi: .git, backups, .tmp-edge-sync-check, Exceldorper 62 31.03.xlsx
